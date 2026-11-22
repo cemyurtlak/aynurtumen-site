@@ -1,0 +1,42 @@
+# Aynur Tümen sitesi – GitHub'a push olunca sunucudaki guncelle.php'yi çağırır.
+# Anahtar yalnız GitHub Secrets'ta: Settings → Secrets and variables → Actions → GUNCELLEME_ANAHTARI
+# Etkinlik ve hizmet listesi (panelden de değişebilir) yalnız commit mesajında [icerik] varsa ya da elle çalıştırmada kutu işaretliyse yazılır.
+name: Siteyi guncelle
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      icerik:
+        description: "Etkinlik ve hizmet listesini de güncelle (panelden yapılan değişiklikler ezilir, eskisi yedeklenir)"
+        type: boolean
+        default: false
+concurrency:
+  group: site-guncelle
+  cancel-in-progress: false
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Sunucudaki guncelleme sayfasini cagir
+        env:
+          ANAHTAR: ${{ secrets.GUNCELLEME_ANAHTARI }}
+          MESAJ: ${{ github.event.head_commit.message }}
+          ELLE: ${{ inputs.icerik }}
+        run: |
+          if [ -z "$ANAHTAR" ]; then echo "HATA: GUNCELLEME_ANAHTARI secret'i eklenmemis."; exit 1; fi
+          EK=""
+          case "$MESAJ" in *"[icerik]"*) EK="&veri=icerik" ;; esac
+          if [ "$ELLE" = "true" ]; then EK="&veri=icerik"; fi
+          sleep 15   # GitHub zip'inin yeni commit'i görmesi için
+          # Önce asıl adres; alan adı henüz yönlenmemişse Hostinger'ın geçici adresi denenir (ikisi de aynı dosyalar).
+          for ADRES in "https://www.aynurtumen.com.tr" "https://idyllic-darksalmon-lark-95.hostingersite.com"; do
+            echo "== $ADRES"
+            KOD=$(curl -sS -L -o cikti.txt -w '%{http_code}' --max-time 150 -A "aynurtumen-github-actions" -G \
+                  "$ADRES/guncelle.php" --data-urlencode "k=$ANAHTAR" --data "t=$(date +%s)$EK" || echo 000)
+            cat cikti.txt 2>/dev/null || true
+            echo "HTTP $KOD"
+            if [ "$KOD" = "200" ] && grep -q "BİTTİ" cikti.txt; then exit 0; fi
+          done
+          exit 1

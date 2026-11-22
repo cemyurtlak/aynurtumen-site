@@ -1,0 +1,12 @@
+{
+  "name": "Aynur Tümen · Aile Dizimi",
+  "short_name": "Aynur Tümen",
+  "icons": [
+    { "src": "/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#1D1240",
+  "background_color": "#1E1446",
+  "display": "browser",
+  "start_url": "/"
+}

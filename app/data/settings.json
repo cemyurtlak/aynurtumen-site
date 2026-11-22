@@ -1,0 +1,67 @@
+{
+  "name": "Aynur Tümen",
+  "roles": "Aile Dizimi Uzmanı · Konstelasyon Kolaylaştırıcısı · Yazar · Yaşam Koçu",
+  "phoneDisplay": "0530 730 77 61",
+  "phoneIntl": "905307307761",
+  "assistant": "Meryem Hanım",
+  "city": "Sarıyer, İstanbul",
+  "hours": {
+    "1": [
+      "10:00",
+      "20:00"
+    ],
+    "2": [
+      "10:00",
+      "20:00"
+    ],
+    "3": [
+      "10:00",
+      "20:00"
+    ],
+    "4": [
+      "10:00",
+      "20:00"
+    ],
+    "5": [
+      "10:00",
+      "20:00"
+    ],
+    "6": [
+      "12:00",
+      "16:00"
+    ],
+    "0": [
+      "12:00",
+      "16:00"
+    ]
+  },
+  "bufferMinutes": 30,
+  "bookingDaysAhead": 60,
+  "youtubeChannelId": "UCM89NNIeJGdFD7qSCd4ytxQ",
+  "social": {
+    "instagram": "https://www.instagram.com/aynurtumen/",
+    "akademi": "https://www.instagram.com/s.aynurtumenakademi/",
+    "youtube": "https://www.youtube.com/@AynurTümen",
+    "tiktok": "",
+    "facebook": "https://www.facebook.com/aynurtumenn/",
+    "linkedin": "https://tr.linkedin.com/in/aynur-t%C3%BCmen-6840b039"
+  },
+  "bookLinks": [
+    {
+      "label": "D&R'dan satın al",
+      "url": "https://www.dr.com.tr/kitap/gorunmeyen-baglar-bu-his-benim-degil/s-aynur-tumen/basvuru/kisisel-gelisim/urunno=0002223464001"
+    }
+  ],
+  "heroVideo": {
+    "id": "oZ6btqRqy0o",
+    "title": "Aile dizimi yaptıran kişi etkilerini ne zaman görmeye başlar?",
+    "label": "18 bin kez izlendi"
+  },
+  "book": {
+    "title": "Görünmeyen Bağlar - Bu His Benim Değil",
+    "publisher": "Destek Yayınları",
+    "pages": 216,
+    "year": 2026,
+    "isbn": "9786258594539"
+  }
+}

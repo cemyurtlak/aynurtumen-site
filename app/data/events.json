@@ -1,0 +1,63 @@
+[
+  {
+    "id": "dolunay-aralik",
+    "title": "Dolunay çalışması ve niyet",
+    "type": "online",
+    "start": "2026-12-04T20:30:00+03:00",
+    "duration": 75,
+    "location": "Online, canlı",
+    "capacity": 40,
+    "price": 600,
+    "description": "Dolunay enerjisinde bırakmak istediklerimizi yazıyor, niyetlerimizi birlikte okuyor ve dolunay gece duasıyla kapanış yapıyoruz.",
+    "ornek": true
+  },
+  {
+    "id": "grup-dizim-aralik",
+    "title": "Grup aile dizimi atölyesi",
+    "type": "yuzyuze",
+    "start": "2026-12-13T11:00:00+03:00",
+    "duration": 360,
+    "location": "Sarıyer, İstanbul",
+    "capacity": 20,
+    "price": 3500,
+    "description": "Bir gün boyunca grup içinde dizim çalışmaları. Kendi konunuzu dizebilir ya da başkalarının dizimlerinde temsilci olarak yer alabilirsiniz.",
+    "ornek": true
+  },
+  {
+    "id": "anne-calismasi",
+    "title": "Anne çalışması: anneyle barışmak",
+    "type": "online",
+    "start": "2026-12-20T14:00:00+03:00",
+    "duration": 120,
+    "location": "Online, canlı",
+    "capacity": 60,
+    "price": 900,
+    "description": "Anneyle ilişkimizin hayatımızın her alanına nasıl yansıdığına bakıyor, anneden gelen akışı yeniden açmaya çalışıyoruz.",
+    "ornek": true
+  },
+  {
+    "id": "yeni-yil-niyet",
+    "title": "Yeni yıl niyet ve dua gecesi",
+    "type": "online",
+    "start": "2026-12-31T21:00:00+03:00",
+    "duration": 60,
+    "location": "Online, canlı",
+    "capacity": 200,
+    "price": 0,
+    "description": "Yeni yıla niyetlerimizi birlikte yazarak giriyoruz. Ücretsiz, kayıt gerekli.",
+    "ornek": true
+  },
+  {
+    "id": "cirali-kamp",
+    "title": "Anadolu kadim şifa ritüelleri kampı",
+    "type": "kamp",
+    "start": "2027-05-01T10:00:00+03:00",
+    "duration": 4320,
+    "location": "Çıralı, Antalya",
+    "capacity": 30,
+    "price": 5000,
+    "priceLabel": "Kapora",
+    "description": "Üç gün boyunca doğada grup aile dizimi çalışmaları, niyet ve şükran ritüelleri. Kapora ile yerinizi ayırtabilirsiniz; konaklama seçenekleri kayıttan sonra iletilir.",
+    "ornek": true
+  }
+]

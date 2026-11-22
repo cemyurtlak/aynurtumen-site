@@ -1,0 +1,76 @@
+[
+  {
+    "id": "gorunmeyen-baglar",
+    "title": "Görünmeyen Bağlar",
+    "subtitle": "Bu His Benim Değil",
+    "year": 2026,
+    "publisher": "Destek Yayınları",
+    "pages": 216,
+    "isbn": "9786258594539",
+    "genre": "Aile dizimi",
+    "featured": true,
+    "text": "İlişkilerde, parada, sağlıkta tekrar eden döngülerin ardındaki aile bağlarını anlatıyor. Bilinçaltının yalnızca bize ait olmadığını, ailede yaşanmış travmaların kuşaklar boyunca nasıl taşındığını ve taşıdığımızı fark edip sahibine saygıyla bırakmanın yollarını gösteriyor.",
+    "colors": ["#7B4BB5", "#2D1D63"],
+    "links": [{ "label": "D&R'dan satın al", "url": "https://www.dr.com.tr/kitap/gorunmeyen-baglar-bu-his-benim-degil/s-aynur-tumen/basvuru/kisisel-gelisim/urunno=0002223464001" }]
+  },
+  {
+    "id": "askin-gizli-bahcesi",
+    "title": "Aşkın Gizli Bahçesi",
+    "subtitle": "",
+    "year": 2016,
+    "publisher": "Lifecycle Yayınları",
+    "pages": 264,
+    "genre": "Aşk ve cinsellik",
+    "text": "Aşkı yöneten ama hakkında en az konuşulan alanı, cinselliği ele alıyor. Cinselliğin tarihteki yerinden toplumların ona bakışına kadar geniş bir çerçevede, bildiğimizi sandığımız şeyleri yeniden düşündürüyor.",
+    "colors": ["#C24E7E", "#5A1E45"],
+    "links": [{ "label": "Kitapyurdu'nda incele", "url": "https://www.kitapyurdu.com/kitap/askin-gizli-bahcesi/387229.html" }]
+  },
+  {
+    "id": "para-kodlari",
+    "title": "Para Kodları",
+    "subtitle": "",
+    "year": 2015,
+    "publisher": "Büyükada Yayıncılık",
+    "pages": 184,
+    "genre": "Para ve kariyer",
+    "text": "Parasızlığın ve başarısızlığın bilinçaltındaki nedenleriyle yüzleşmeye davet ediyor. Okuru 21 adımda, iş hayatında ve parayla ilişkide yeni bir yol çizmeye yönlendiriyor.",
+    "colors": ["#D9A441", "#6B4A12"],
+    "links": [{ "label": "Kitapyurdu'nda incele", "url": "https://www.kitapyurdu.com/kitap/para-kodlari/369938.html" }]
+  },
+  {
+    "id": "ask-kodlari",
+    "title": "Aşk Kodları",
+    "subtitle": "Hayat Kodları Dizisi 1",
+    "year": 2013,
+    "publisher": "GOA Basım Yayın",
+    "pages": 200,
+    "genre": "İlişkiler",
+    "text": "Çocuklukta tanık olduklarımızla zihnimize yerleşen “kodların” aşk hayatımızı nasıl yönettiğini anlatıyor. Neden hep aynı ilişkileri yaşadığımızı ve bu döngüden nasıl çıkabileceğimizi soruyor.",
+    "colors": ["#E06B6B", "#6E1F3A"],
+    "links": [{ "label": "Kitapyurdu'nda incele", "url": "https://www.kitapyurdu.com/kitap/ask-kodlari-hayat-kodlari-dizisi-1/318289.html" }]
+  },
+  {
+    "id": "mina-lejyonerin-kizi",
+    "title": "Mina & Lejyonerin Kızı",
+    "subtitle": "",
+    "year": 2020,
+    "publisher": "Ceres Yayınları",
+    "pages": 272,
+    "genre": "Roman",
+    "text": "Aşk, kıskançlık ve şüphenin içinden geçen bir kadının hikâyesi. Aynur Tümen'in kurmaca alanındaki romanı.",
+    "colors": ["#3E8C8A", "#123A44"],
+    "links": [{ "label": "Kitapyurdu'nda incele", "url": "https://www.kitapyurdu.com/kitap/mina-lejyonerin-kizi/459916.html" }]
+  },
+  {
+    "id": "aynur-tumen",
+    "title": "Aynur Tümen",
+    "subtitle": "Koçluk hikâyeleri",
+    "year": 2011,
+    "publisher": "GOA Basım Yayın",
+    "pages": 176,
+    "genre": "Kişisel gelişim",
+    "text": "Koçluk yolculuğundan yaşanmış kısa hikâyeler. Hayat ters gittiğinde ve tek başına üstesinden gelinemeyen anlarda yol gösteren bir başucu kitabı.",
+    "colors": ["#6C7BD9", "#1F2766"],
+    "links": [{ "label": "Kitapyurdu'nda incele", "url": "https://www.kitapyurdu.com/kitap/aynur-tumen/264996.html" }]
+  }
+]

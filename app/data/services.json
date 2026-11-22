@@ -1,0 +1,53 @@
+[
+  {
+    "id": "on-gorusme",
+    "name": "Ön görüşme",
+    "short": "Konunuzu ve size uygun çalışma biçimini belirlediğimiz tanışma görüşmesi.",
+    "duration": 20,
+    "price": 750,
+    "modes": ["online"],
+    "group": "dizim",
+    "bookable": true
+  },
+  {
+    "id": "bireysel-dizim",
+    "name": "Bireysel aile dizimi",
+    "short": "Kendi konunuzla bire bir, derin bir çalışma: ilişki, para, ebeveyn, kayıp ve tekrar eden döngüler.",
+    "duration": 90,
+    "price": 4500,
+    "modes": ["online", "yuzyuze"],
+    "group": "dizim",
+    "bookable": true,
+    "featured": true
+  },
+  {
+    "id": "cift-dizimi",
+    "name": "Çift dizimi",
+    "short": "Partnerlerin kendi aile sistemlerinden ilişkiye taşıdıklarına birlikte baktığımız çalışma.",
+    "duration": 120,
+    "price": 6000,
+    "modes": ["online", "yuzyuze"],
+    "group": "dizim",
+    "bookable": true
+  },
+  {
+    "id": "kocluk",
+    "name": "Koçluk seansı",
+    "short": "İlişki ve evlilik, aile ve ergen, kariyer ve öğrenci, spiritüel koçluk.",
+    "duration": 60,
+    "price": 3000,
+    "modes": ["online", "yuzyuze"],
+    "group": "kocluk",
+    "bookable": true
+  },
+  {
+    "id": "organizasyon",
+    "name": "Organizasyon dizimi",
+    "short": "Ekip içi çatışmalar, ortaklık ilişkileri ve kurumsal döngüler için sistemik çalışma.",
+    "duration": 0,
+    "price": null,
+    "modes": ["yuzyuze", "online"],
+    "group": "kurumsal",
+    "bookable": false
+  }
+]

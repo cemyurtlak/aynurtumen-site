@@ -1,0 +1,23 @@
+# Bu dosyanın bir kopyasını "ayarlar.env" adıyla aynı klasöre (app/) kaydedip değerleri doldurun.
+
+# Sitenin tam adresi
+SITE_URL=https://www.aynurtumen.com.tr
+# Yönetim paneli (/admin) şifresi: en az 10 karakter. Boş ya da kısa olursa panel açılmaz.
+ADMIN_PASSWORD=
+
+# E-posta: alan adına ait bir adres (Hostinger > E-postalar bölümünden açılır)
+MAIL_FROM=info@aynurtumen.com.tr
+# Yeni randevu talepleri ve iletişim formu mesajları buraya da gelir
+ADMIN_EMAIL=aynurtmn@gmail.com
+
+# Google Takvim ve DeepL (yönetim panelinden de girilebilir; BENI-OKU.md bölüm 9)
+GOOGLE_CALENDAR_ICS_URL=
+GOOGLE_BUSY_ICS_URL=
+CALENDAR_REFRESH_MINUTES=15
+DEEPL_API_KEY=
+
+# Instagram son gönderiler (boşsa seçili gönderiler gösterilir)
+IG_ACCESS_TOKEN=
+
+# Online görüşme odası (Jitsi; hesap gerekmez)
+JITSI_DOMAIN=meet.jit.si

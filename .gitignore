@@ -1,0 +1,20 @@
+# Sunucuya ve GitHub'a gitmeyecek dosyalar
+app/ayarlar.env
+app/.env
+app/guncelle_anahtar.php
+GUNCELLEME_ANAHTARI.txt
+SITEYI_GUNCELLE.html
+app/data/bookings.json
+app/data/messages.json
+app/data/baglantilar.json
+app/data/*-onbellek.json
+app/data/ceviri-durum.json
+app/data/takvim-anahtari.txt
+app/data/yedek/
+app/data/.*.lock
+app/locales/otomatik/
+*.zip
+*.tmp
+*.yeni
+ILK_KURULUM.bat
+guncelle-is-akisi.yml

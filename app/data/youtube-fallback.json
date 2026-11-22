@@ -1,0 +1,39 @@
+{
+  "note": "İnternet bağlantısı yoksa ya da YouTube'a ulaşılamazsa kullanılan yedek liste. Sunucu çalışırken YouTube'dan otomatik güncel liste çekilir.",
+  "videos": [
+    { "id": "SRVCpslduN4", "title": "Dolunay Çalışması ve Ardından Dolunay Gece Duası" },
+    { "id": "DQLmZTqE-bY", "title": "10.10 Portalı" },
+    { "id": "kUcyyVCciec", "title": "Dua Gecesi" },
+    { "id": "8mACADEjdAo", "title": "Mizahi Anlatım İle Kişisel Gelişime Devam" },
+    { "id": "uzz2378yKFI", "title": "Bu ikinci kampımıza kimler katılıyor?" },
+    { "id": "0TJQlqpPr48", "title": "Kitap tanıtımı: Bu His Bana Ait Değil" },
+    { "id": "72kTtzLVJqE", "title": "Neden Aile Dizimi Yaptırmalısın?" },
+    { "id": "SBgQoeORAJ8", "title": "Belirsizliği Ortadan Kaldıran Sorular, Şifa Duası" },
+    { "id": "zfufPz0Gg2g", "title": "Teslimiyet" }
+  ],
+  "popular": [
+    { "id": "oZ6btqRqy0o", "title": "Aile dizimi yaptıran kişi etkilerini ne zaman görmeye başlar?", "views": "18 B" },
+    { "id": "T4xyBUOdlLo", "title": "Astrolog Mine Ölmez Şahan ile Yengeç Dolunayı", "views": "32 B" },
+    { "id": "LQiN5IbfWf4", "title": "Aile dizimi sırasında bilmediğimiz bir gerçek ortaya çıkınca", "views": "10 B" },
+    { "id": "K5ocLGs0Yhs", "title": "Hoponopono ile atalardan gelen negatif enerjilerden arınma", "views": "10 B" },
+    { "id": "y8yiV8eUl7I", "title": "Aile dizimi: anne ile olan ilişkimiz bizi nasıl etkiliyor?", "views": "4,3 B" },
+    { "id": "Lx5C0JD87OE", "title": "Mine Ölmez'den ağaç meditasyonu ile kalbimizi genişletelim", "views": "15 B" }
+  ],
+  "shorts": [
+    { "id": "LoVjUdKrm8o", "title": "Para Neden Sende Durmuyor", "topic": "para" },
+    { "id": "jX3F8FaeJPw", "title": "Kadın Soyunda Para", "topic": "para" },
+    { "id": "OdFF19OTEZA", "title": "Borç Döngüsü Tesadüf Değildir", "topic": "para" },
+    { "id": "3UBY7s3Frjc", "title": "Kıtlık Genlerde Değil Sistemde", "topic": "para" },
+    { "id": "92B0CexfWrw", "title": "Para Senin İçin Temiz mi?", "topic": "para" },
+    { "id": "L17wqHFYUOU", "title": "Babamdan Fazla Kazanamam", "topic": "baba" },
+    { "id": "gwNmlEYQEqI", "title": "Babayla İlişkin Kariyerinle İlişkin", "topic": "baba" },
+    { "id": "cYwlm9ZL-O0", "title": "Baba Hayattan Senin Alamadıklarını Ben Almaya Gönüllüyüm", "topic": "baba" },
+    { "id": "a0jXdgoK2PA", "title": "Anne-Baba Arasında Taraf Tutmak", "topic": "aile" },
+    { "id": "R0IdUVTumG4", "title": "Ailenin Ebeveyni Olan Çocuk", "topic": "aile" },
+    { "id": "1UvbKXXVRqY", "title": "Hayatta Kalanın Suçluluğu", "topic": "aile" },
+    { "id": "r00cSM9oRgY", "title": "Miras Kavgalarının Görünmeyen Bedeli", "topic": "aile" },
+    { "id": "O9u7wZdPq2Y", "title": "İflas Eden Dede", "topic": "aile" },
+    { "id": "C-eXxuh1ye8", "title": "Vermek Erdem, Ama…", "topic": "iliski" },
+    { "id": "a65C6O7Osr8", "title": "Hangisi Sensin", "topic": "iliski" }
+  ]
+}
