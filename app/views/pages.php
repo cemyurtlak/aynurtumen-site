@@ -547,7 +547,7 @@ function page_yazi(array $post, array $posts): string {
   </div></article>
   $rel
 HTML;
-  return layout(['title' => $post['title'], 'path' => '/yazilar/' . $post['slug'], 'body' => $body, 'description' => $post['excerpt'] ?? null,
+  return layout(['title' => $post['title'], 'path' => '/yazilar/' . $post['slug'], 'body' => $body, 'trOnly' => true, 'description' => $post['excerpt'] ?? null,
     'head' => '<script type="application/ld+json">' . js_json(['@context' => 'https://schema.org', '@type' => 'Article', 'headline' => $post['title'], 'author' => ['@type' => 'Person', 'name' => 'Aynur Tümen'], 'inLanguage' => 'tr']) . '</script>']);
 }
 
@@ -683,7 +683,7 @@ function page_yasal(): string {
     <ul><li>Randevunuzu ertelemek ya da iptal etmek için en geç 24 saat önce WhatsApp’tan yazmanız yeterlidir.</li><li>Etkinlik ve kamp kaydınızda bir değişiklik olursa yine WhatsApp’tan haber vermeniz yeterlidir.</li></ul>
   </div></section>
 HTML;
-  return layout(['title' => 'Yasal Metinler', 'path' => '/yasal', 'body' => $body]);
+  return layout(['title' => 'Yasal Metinler', 'path' => '/yasal', 'body' => $body, 'noindex' => true]);
 }
 
 /* ---------- Randevu ---------- */

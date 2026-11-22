@@ -29,7 +29,10 @@ function layout(array $o): string {
   $fullTitle = $title ? t($title) . ' | Aynur Tümen' : 'Aynur Tümen | ' . t('Aile Dizimi ve Konstelasyon Çalışmaları');
   $desc = t($description ?: 'Aynur Tümen ile bireysel ve grup aile dizimi (konstelasyon) çalışmaları, online randevu, etkinlikler ve kamplar.');
   $self = $o['canonical'] ?? $path;
-  $alt = join_map(I18n::LANGS, fn($l) => '<link rel="alternate" hreflang="' . $l . '" href="@@' . esc($site . I18n::prefix($self, $l)) . '">') . '<link rel="alternate" hreflang="x-default" href="@@' . esc($site . $self) . '">';
+  // trOnly: içerik yalnız Türkçe (yazılar) → diğer dillerdeki kopyası arama motorunda dizine girmez, asıl adres Türkçe sayfa
+  $trOnly = !empty($o['trOnly']);
+  $alt = $trOnly ? '' : join_map(I18n::LANGS, fn($l) => '<link rel="alternate" hreflang="' . $l . '" href="@@' . esc($site . I18n::prefix($self, $l)) . '">') . '<link rel="alternate" hreflang="x-default" href="@@' . esc($site . $self) . '">';
+  $robots = !empty($o['noindex']) || ($trOnly && $L !== 'tr') ? '<meta name="robots" content="noindex, follow">' : '';
   $langMenu = '<div class="lang" data-lang><button class="lang-btn" type="button" aria-expanded="false" aria-label="Dil / Language">' . GLOBE . '<span>' . strtoupper($L) . '</span></button><div class="lang-menu">'
     . join_map(I18n::LANGS, fn($l) => '<a href="@@' . esc(I18n::prefix($self, $l)) . '" hreflang="' . $l . '" lang="' . $l . '"' . ($l === $L ? ' aria-current="true"' : '') . '><b>' . strtoupper($l) . '</b>' . I18n::NAMES[$l] . '</a>') . '</div></div>';
   $social = $s['social'] ?? [];
@@ -53,7 +56,7 @@ function layout(array $o): string {
 <title>{$_(esc($fullTitle))}</title>
 <meta name="description" content="{$_(esc($desc))}">
 <link rel="canonical" href="@@$canon">
-$alt
+$robots$alt
 <meta property="og:title" content="{$_(esc($fullTitle))}">
 <meta property="og:description" content="{$_(esc($desc))}">
 <meta property="og:type" content="website">

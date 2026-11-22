@@ -5,6 +5,7 @@ require __DIR__ . '/bootstrap.php';
 $uri = $_SERVER['REQUEST_URI'] ?? '/';
 $rawPath = rawurldecode(parse_url($uri, PHP_URL_PATH) ?: '/');
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if ($method === 'HEAD') $method = 'GET'; // HEAD istekleri (ör. arama motoru, bağlantı önizleme) GET gibi yanıtlanır; gövde gönderilmez
 [$lang, $path] = I18n::splitPath($rawPath);
 $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
 $base = rtrim(env('SITE_URL') ?: (($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')), '/');
@@ -238,10 +239,12 @@ switch (true) {
     header('Content-Type: text/plain; charset=utf-8');
     echo "User-agent: *\nDisallow: /admin\nDisallow: /randevu/\nDisallow: /gorusme/\nDisallow: /odeme/\nDisallow: /takvim/\nSitemap: $base/sitemap.xml\n"; break;
   case $route === 'GET /sitemap.xml':
-    $urls = array_merge(['/', '/aile-dizimi', '/hizmetler', '/etkinlikler', '/videolar', '/kitap', '/yazilar', '/hakkinda', '/galeri', '/iletisim'], array_map(fn($p) => '/yazilar/' . $p['slug'], posts()));
+    $urls = ['/', '/aile-dizimi', '/hizmetler', '/etkinlikler', '/videolar', '/kitap', '/yazilar', '/hakkinda', '/galeri', '/iletisim'];
     $alt = fn($u) => join_map(I18n::LANGS, fn($l) => '<xhtml:link rel="alternate" hreflang="' . $l . '" href="' . $base . I18n::prefix($u, $l) . '"/>');
     $x = '';
     foreach ($urls as $u) foreach (I18n::LANGS as $l) $x .= '<url><loc>' . $base . I18n::prefix($u, $l) . '</loc>' . $alt($u) . '</url>';
+    // Yazılar yalnız Türkçe: haritada tek (Türkçe) adresle
+    foreach (posts() as $p) $x .= '<url><loc>' . $base . '/yazilar/' . esc($p['slug']) . '</loc></url>';
     header('Content-Type: application/xml; charset=utf-8');
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">$x</urlset>"; break;
 
