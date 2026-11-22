@@ -43,7 +43,7 @@ function layout(array $o): string {
   $year = date('Y');
   $clientJs = $client && $L !== 'tr' ? '<script>window.I18N=' . str_replace('<', '\\u003c', js_json((object)I18n::clientDict($L))) . '</script><script src="/js/i18n.js?v=' . $V . '" defer></script>' : '';
   $canon = esc($site . I18n::prefix($self, $L));
-  $img = esc("$site/images/paylasim-$L.jpg");
+  $img = esc("$site/images/paylasim-$L.jpg?v=2");
   return <<<HTML
 <!doctype html>
 <html lang="$L">
