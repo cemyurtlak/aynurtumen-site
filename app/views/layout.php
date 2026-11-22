@@ -124,7 +124,7 @@ $body
   </div>
   <div class="wrap footer-bottom">
     <span>© $year Aynur Tümen</span>
-    <span><a href="/yasal#kvkk">KVKK</a><a href="/yasal#cerez">Çerez politikası</a><a href="/yasal#iade">İptal ve iade</a></span>
+    <span><a href="/yasal#kvkk">KVKK</a><a href="/yasal#cerez">Çerez politikası</a><a href="/yasal#iade">İptal ve erteleme</a></span>
   </div>
 </footer>
 <a class="wa-float" href="$wa" target="_blank" rel="noopener" aria-label="WhatsApp'tan yazın">{$_(WA_ICON)}</a>

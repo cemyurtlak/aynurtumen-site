@@ -36,10 +36,10 @@ function eventCard(array $ev, array $o = []): string {
   $typeLabel = ['online' => 'Online', 'yuzyuze' => 'Yüz yüze', 'kamp' => 'Kamp'][$ev['type']] ?? $ev['type'];
   $reg = ($ev['registration'] ?? true) !== false;
   $desc = !empty($o['compact']) ? '' : '<p>' . esc($ev['description']) . '</p>';
-  $seats = $reg ? '<div class="seats"><span class="bar"><i style="width:' . js_round((1 - $left / $ev['capacity']) * 100) . '%"></i></span>' . ($left > 0 ? "$left yer kaldı" : 'Kontenjan doldu') . '</div>' : '';
-  $cta = (!empty($ev['price']) ? '' : '<span class="free-tag">Ücretsiz</span>') . (!$reg
+  $seats = $reg && $left <= 0 ? '<div class="seats">Kontenjan doldu</div>' : '';
+  $cta = (!$reg
     ? '<a class="btn btn-line btn-sm" href="' . wa('Merhaba, ' . $ev['title'] . ' hakkında bilgi almak istiyorum.') . '" target="_blank" rel="noopener">Bilgi al</a>'
-    : ($left > 0 ? '<a class="btn btn-violet btn-sm" href="/randevu?etkinlik=' . esc($ev['id']) . '">' . (!empty($ev['price']) ? 'Kayıt ol' : 'Ücretsiz kayıt') . '</a>'
+    : ($left > 0 ? '<a class="btn btn-violet btn-sm" href="/randevu?etkinlik=' . esc($ev['id']) . '">' . 'Kayıt ol' . '</a>'
       : '<a class="btn btn-line btn-sm" href="' . wa('Merhaba, ' . $ev['title'] . ' için bekleme listesine yazılmak istiyorum.') . '" target="_blank" rel="noopener">Bekleme listesi</a>'));
   return <<<HTML
 
@@ -90,7 +90,7 @@ function pageHead(string $title, string $lead = '', string $crumbs = ''): string
 HTML;
 }
 
-function ctaBand(string $title = 'İlk adımı atmak için konunuzu bilmeniz gerekmiyor.', string $lead = 'Kısa bir ön görüşmede nereden başlayacağımıza birlikte karar verelim.'): string {
+function ctaBand(string $title = 'İlk adımı atmak için konunuzu bilmeniz gerekmiyor.', string $lead = 'Görüşme türünü seç, WhatsApp’tan yaz; nereden başlayacağımıza birlikte karar verelim.'): string {
   $_ = fn($x) => $x;
   return <<<HTML
 
@@ -147,7 +147,7 @@ function page_home(array $videos, array $ig, array $posts): string {
           " . (!empty($x['featured']) ? '<span class="badge">En çok tercih edilen</span>' : '') . "
           <h3>" . esc($x['name']) . "</h3>
           <p>" . esc($x['short']) . "</p>
-          <div class=\"service-meta\"><span>" . durLabel($x['duration']) . "</span><span>" . modes($x) . "</span></div>
+          <div class=\"service-meta\"><span>" . modes($x) . "</span></div>
           <div class=\"service-foot\"><a class=\"btn " . (!empty($x['featured']) ? 'btn-gold' : 'btn-violet') . " btn-sm\" href=\"/randevu?hizmet=" . esc($x['id']) . "\">Randevu al</a></div>
         </article>");
   $eventsSec = $events ? "\n  <section class=\"events-sec\">
@@ -219,7 +219,7 @@ function page_home(array $videos, array $ig, array $posts): string {
         <a class="link-arrow" href="/aile-dizimi">Bir seans nasıl geçer?</a>
       </div>
       <ol class="path reveal">
-        <li><b>Konunu getir</b><span>Kısa bir ön görüşmeyle niyetini netleştiririz.</span></li>
+        <li><b>Konunu getir</b><span>Görüşmenin başında niyetini netleştiririz.</span></li>
         <li><b>Sistemi gör</b><span>Temsilciler, semboller ya da imgelemeyle ailen görünür olur.</span></li>
         <li><b>Taşıdığını bırak</b><span>Çözüm cümleleri ve hareketlerle yük sahibine döner.</span></li>
         <li><b>Hayatında izle</b><span>Sonraki haftalarda değişimi gözlemler, istersen devam ederiz.</span></li>
@@ -295,7 +295,7 @@ function page_aileDizimi(): string {
     ['Aile dizimi sırasında bilinmeyen bir gerçek ortaya çıkarsa?', 'Dizimde görünenler sistemin bir resmidir. Bu resmi saygıyla karşılayıp sizin için ne anlam taşıdığına birlikte bakarız.'],
     ['Online aile dizimi yapılabilir mi?', 'Evet. Bireysel online seanslarda temsilciler yerine semboller, kâğıt figürler ve imgeleme kullanırız. Görüşme sitedeki görüşme odasından yapılır; uygulama indirmeniz gerekmez.'],
     ['Kaç seans gerekir?', 'Çoğu konu için tek bir dizim başlangıç için yeterlidir. Farklı konularla çalışmak isterseniz aralara birkaç hafta koymanızı öneririm.'],
-    ['Randevumu değiştirebilir miyim?', 'Bireysel randevularınızı 24 saat öncesine kadar ücretsiz değiştirebilirsiniz. Ayrıntılar iptal ve iade koşullarında.'],
+    ['Randevumu değiştirebilir miyim?', 'Evet. Randevunuzu değiştirmek için en geç 24 saat önce WhatsApp’tan yazmanız yeterli.'],
   ];
   $faqHtml = join_map($faq, fn($x) => '<details class="reveal"><summary>' . $x[0] . '</summary><p>' . $x[1] . '</p></details>');
   $body = <<<HTML
@@ -312,7 +312,7 @@ function page_aileDizimi(): string {
       </div>
       <aside class="side-card reveal">
         <h3>Bireysel aile dizimi</h3>
-        <p>90 dakika · Online ya da yüz yüze</p>
+        <p>Online ya da yüz yüze</p>
         <a class="btn btn-gold" href="/randevu?hizmet=bireysel-dizim">Randevu al</a>
         <a class="btn btn-wa" href="{$_(wa('Merhaba, aile dizimi hakkında sorum var.'))}" target="_blank" rel="noopener">{$_(WA_ICON)} Soru sor</a>
       </aside>
@@ -320,9 +320,9 @@ function page_aileDizimi(): string {
   </section>
   <section class="what">
     <div class="wrap what-in">
-      <div class="reveal"><h2>Bir seans nasıl geçer?</h2><p class="lead">Bire bir seanslar yaklaşık 90 dakika sürer.</p></div>
+      <div class="reveal"><h2>Bir seans nasıl geçer?</h2><p class="lead">Her seans kendi akışında ilerler; adımlar genellikle şöyledir.</p></div>
       <ol class="path reveal">
-        <li><b>Ön görüşme</b><span>Konunuzu ve ailenizdeki önemli olayları (erken kayıplar, ayrılıklar, göçler) kısaca konuşuruz.</span></li>
+        <li><b>Tanışma</b><span>Konunuzu ve ailenizdeki önemli olayları (erken kayıplar, ayrılıklar, göçler) kısaca konuşuruz.</span></li>
         <li><b>Niyet</b><span>Bu çalışmadan ne istediğinizi tek bir cümleyle netleştiririz.</span></li>
         <li><b>Dizim</b><span>Aile üyelerini temsil eden kişiler, semboller ya da imgeler yerleştirilir; ilişkiler görünür olur.</span></li>
         <li><b>Çözüm</b><span>Görülen bağa saygı gösteren cümleler ve hareketlerle taşınan yük sahibine bırakılır.</span></li>
@@ -350,7 +350,7 @@ function page_hizmetler(): string {
   $_ = fn($x) => $x;
   $services = Store::read('services', []);
   $row = fn($x) => "\n    <article class=\"offer reveal\">
-      <div><h3>" . esc($x['name']) . "</h3><div class=\"offer-meta\">" . (!empty($x['duration']) ? durLabel($x['duration']) . ' · ' : '') . modes($x) . "</div></div>
+      <div><h3>" . esc($x['name']) . "</h3><div class=\"offer-meta\">" . modes($x) . "</div></div>
       <p>" . esc($x['short']) . "</p>
       <div class=\"offer-cta\">" . (!empty($x['bookable']) ? '<a class="btn btn-violet btn-sm" href="/randevu?hizmet=' . esc($x['id']) . '">Randevu al</a>' : '<a class="btn btn-line btn-sm" href="' . wa('Merhaba, ' . $x['name'] . ' hakkında teklif almak istiyoruz.') . '" target="_blank" rel="noopener">Teklif iste</a>') . "</div>
     </article>";
@@ -425,7 +425,7 @@ function page_videolar(array $v): string {
     <div class="section-head reveal"><h2>En çok izlenenler</h2></div>
     <div class="video-grid">{$_(join_map($v['popular'], fn($x) => yt($x)))}</div>
   </div></section>
-  {$_(ctaBand('İzlediklerin sana tanıdık geldiyse…', 'Kendi konunla çalışmak için bir ön görüşmeyle başlayabilirsin.'))}
+  {$_(ctaBand('İzlediklerin sana tanıdık geldiyse…', 'Kendi konunla çalışmak için görüşme türünü seçip randevu alabilirsin.'))}
 HTML;
   return layout(['title' => 'Videolar', 'path' => '/videolar', 'body' => $body, 'description' => 'Aynur Tümen YouTube kanalından aile dizimi, para, ilişkiler ve niyet çalışmaları üzerine videolar ve kısa videolar.']);
 }
@@ -494,17 +494,27 @@ function page_yazilar(array $posts): string {
   $cats = array_values(array_unique(array_filter(array_map(fn($p) => $p['category'] ?? '', $posts))));
   $note = I18n::lang() !== 'tr' ? '<p class="lang-note reveal">Yazılar Türkçe olarak yayımlanmaktadır.</p>' : '';
   $catBtns = join_map($cats, fn($c) => '<button data-filter="' . esc($c) . '" aria-pressed="false">' . esc($c) . '</button>');
-  $grid = join_map($posts, fn($p, $i) => preg_replace('/<article class="post/', '<article data-type="' . str_replace(['\\', '$'], ['\\\\', '\\$'], esc($p['category'] ?? '')) . '" class="post', postCard($p, $i % 3), 1));
+  $q = trim((string)($_GET['q'] ?? ''));
+  $found = $q !== '' ? array_flip(search_posts($posts, $q)) : null;
+  $total = count($posts); $shown = $found === null ? $total : count($found);
+  $grid = join_map($posts, fn($p, $i) => preg_replace('/<article class="post/', '<article data-slug="' . esc($p['slug']) . '" data-type="' . str_replace(['\\', '$'], ['\\\\', '\\$'], esc($p['category'] ?? '')) . '"' . ($found !== null && !isset($found[$p['slug']]) ? ' hidden' : '') . ' class="post', postCard($p, $i % 3), 1));
   $body = <<<HTML
 
   {$_(pageHead('Yazılar', 'Aile dizimi, ilişkiler, anne-baba ilişkisi, para ve zihin üzerine.', 'Yazılar'))}
   <section><div class="wrap">
     $note
+    <form class="post-search reveal" role="search" action="/yazilar" method="get" data-post-search-form>
+      <label class="sr-only" for="yazi-ara">Yazılarda ara</label>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="yazi-ara" type="search" name="q" value="{$_(esc($q))}" placeholder="Yazılarda ara: baba, para, ilişki…" autocomplete="off" enterkeyhint="search" data-post-search>
+    </form>
     <div class="filters reveal" role="group" aria-label="Kategori"><button data-filter="all" aria-pressed="true">Tümü</button>{$_(OFF)}$catBtns{$_(ON)}</div>
+    <p class="post-count" aria-live="polite"><span data-post-count data-total="$total">$shown yazı</span></p>
+    <p class="post-empty" data-post-empty{$_($shown ? ' hidden' : '')}>Bu kelimeyle ilgili yazı bulunamadı.</p>
     <div class="post-grid">$grid</div>
   </div></section>
 HTML;
-  return layout(['title' => 'Yazılar', 'path' => '/yazilar', 'body' => $body, 'description' => 'Aile dizimi, ilişkiler, anne-baba ilişkisi, para ve zihin üzerine yazılar.']);
+  return layout(['title' => 'Yazılar', 'path' => '/yazilar', 'body' => $body, 'client' => true, 'description' => 'Aile dizimi, ilişkiler, anne-baba ilişkisi, para ve zihin üzerine yazılar.']);
 }
 
 // Eski sitedeki "08 May" gibi kısa Türkçe tarihi seçili dilde yazar
@@ -586,7 +596,7 @@ function page_hakkinda(array $v): string {
     <div class="section-head reveal"><h2>Konuk olduğum yayınlardan</h2></div>
     <div class="video-grid">{$_(join_map(array_slice($v['popular'], 0, 3), fn($x) => yt($x)))}</div>
   </div></section>
-  {$_(ctaBand('Tanışalım.', 'Kısa bir ön görüşmeyle başlayabiliriz.'))}
+  {$_(ctaBand('Tanışalım.', 'Görüşme türünü seç, WhatsApp’tan yaz.'))}
   <dialog class="lightbox" data-lightbox-dialog><img alt=""><button class="lightbox-close" aria-label="Kapat">×</button></dialog>
 HTML;
   return layout(['title' => 'Aynur Tümen Kimdir? Hakkında ve Basında', 'path' => '/hakkinda', 'body' => $body, 'description' => "2004'ten beri yaşam koçluğu ve aile dizimi çalışmaları yapan Aynur Tümen'in hikâyesi, televizyon programları ve basında çıkan haberler."]);
@@ -663,14 +673,14 @@ function page_yasal(): string {
 
   {$_(pageHead('Yasal metinler', '', 'Yasal metinler'))}
   <section><div class="wrap narrow prose legal">
-    <nav class="chips"><a href="#kvkk">KVKK</a><a href="#cerez">Çerezler</a><a href="#iade">İptal ve iade</a></nav>
+    <nav class="chips"><a href="#kvkk">KVKK</a><a href="#cerez">Çerezler</a><a href="#iade">İptal ve erteleme</a></nav>
     <h2 id="kvkk">KVKK aydınlatma metni</h2>
     <p>Kişisel verileriniz (ad, soyad, telefon, e-posta ve randevu bilgileri) randevunuzun ve etkinlik kaydınızın yürütülmesi, sizinle iletişim kurulması ve yasal yükümlülüklerin yerine getirilmesi amacıyla, 6698 sayılı Kanun'a uygun olarak işlenir. Randevu talebiniz WhatsApp üzerinden iletildiğinde, mesajlaşma WhatsApp altyapısında gerçekleşir. Online görüşmeler için görüntülü görüşme altyapısı kullanılır. Kanun'un 11. maddesindeki haklarınız için iletişim sayfasındaki kanallardan başvurabilirsiniz.</p>
     <h2 id="cerez">Çerez politikası</h2>
     <p>Sitenin çalışması için zorunlu çerezler ve izninizle ziyaret istatistiği çerezleri kullanılır. Tercihinizi tarayıcınızdan çerezleri silerek değiştirebilirsiniz.</p>
 
-    <h2 id="iade">İptal ve iade koşulları</h2>
-    <ul><li>Bireysel seanslar 24 saat öncesine kadar ücretsiz ertelenebilir veya iptal edilebilir.</li><li>Grup etkinliklerinde 7 gün öncesine kadar tam iade yapılır; sonrasında kayıt başka bir etkinliğe aktarılabilir.</li><li>Kamp kaporası, kamp tarihinden 30 gün öncesine kadar iade edilir.</li></ul>
+    <h2 id="iade">İptal ve erteleme</h2>
+    <ul><li>Randevunuzu ertelemek ya da iptal etmek için en geç 24 saat önce WhatsApp’tan yazmanız yeterlidir.</li><li>Etkinlik ve kamp kaydınızda bir değişiklik olursa yine WhatsApp’tan haber vermeniz yeterlidir.</li></ul>
   </div></section>
 HTML;
   return layout(['title' => 'Yasal Metinler', 'path' => '/yasal', 'body' => $body]);
@@ -763,7 +773,7 @@ function page_gorusme(array $b): string {
       <aside class="room-side">
         <p class="eyebrow-plain">Görüşmen</p>
         <h1>{$_(esc(t($b['itemName'])))}</h1>
-        <p class="when">{$d['long']} · {$d['hm']} · {$_(durLabel($b['duration']))}</p>
+        <p class="when">{$d['long']} · {$d['hm']}</p>
         <p class="countdown" id="countdown" aria-live="polite"></p>
         <ul class="checks"><li id="c-cam">Kamera<span>Denenmedi</span></li><li id="c-mic">Mikrofon<span>Denenmedi</span></li><li id="c-net">Bağlantı<span>…</span></li></ul>
         <button class="btn btn-violet btn-lg" id="join">Görüşmeye katıl</button>

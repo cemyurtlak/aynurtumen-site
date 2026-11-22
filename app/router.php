@@ -31,6 +31,19 @@ function body(): array {
   return $_POST;
 }
 function posts(): array { return Store::read('posts', ['posts' => []])['posts'] ?? []; }
+// Yazılarda arama: başlık, kategori, özet ve yazının tamamında; Türkçe harfsiz yazılanı da bulur (baba = Baba, iliski = ilişki)
+function fold_tr(string $s): string { return strtr(tr_lower($s), ['ç' => 'c', 'ğ' => 'g', 'ı' => 'i', 'ö' => 'o', 'ş' => 's', 'ü' => 'u', 'â' => 'a', 'î' => 'i', 'û' => 'u']); }
+function search_posts(array $posts, string $q): array {
+  $words = array_values(array_filter(preg_split('/\s+/u', fold_tr(trim(mb_substr($q, 0, 80)))), fn($w) => $w !== ''));
+  if (!$words) return array_column($posts, 'slug');
+  $out = [];
+  foreach ($posts as $p) {
+    $hay = fold_tr(($p['title'] ?? '') . ' ' . ($p['category'] ?? '') . ' ' . ($p['excerpt'] ?? '') . ' ' . html_entity_decode(strip_tags($p['html'] ?? ''), ENT_QUOTES, 'UTF-8'));
+    foreach ($words as $w) if (!str_contains($hay, $w)) continue 2;
+    $out[] = $p['slug'];
+  }
+  return $out;
+}
 
 // Arka plan işleri: takvim ve çeviri süresi dolduysa yanıttan sonra yenilenir
 Calendar::tick();
@@ -88,6 +101,7 @@ switch (true) {
 
   /* ---------- Randevu ---------- */
   case $route === 'GET /randevu': html(page_randevu($_GET)); break;
+  case $route === 'GET /api/yazi-ara': json_out(['slugs' => search_posts(posts(), (string)($_GET['q'] ?? ''))]); break;
   case $route === 'GET /api/slots': json_out(['slots' => Booking::slotsFor((string)($_GET['date'] ?? ''), (string)($_GET['service'] ?? ''))]); break;
   case $route === 'GET /api/days':
     // Önümüzdeki günlerden hangilerinde boş saat olduğunu döndürür

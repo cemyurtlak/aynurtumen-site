@@ -630,3 +630,12 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--violet);box
 /* Randevu özeti: WhatsApp'a gönderme notu */
 .wa-note{margin:0;padding:1rem 1.1rem;border-radius:14px;background:rgba(37,211,102,.09);border:1px solid rgba(37,211,102,.28);line-height:1.6}
 .btn-wa svg{width:1.2em;height:1.2em;flex:none}
+
+/* Yazılarda arama */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.post-search{position:relative;max-width:560px;margin:0 0 1.1rem}
+.post-search svg{position:absolute;left:1rem;top:50%;width:20px;height:20px;transform:translateY(-50%);fill:none;stroke:var(--muted,#6b6480);stroke-width:2;stroke-linecap:round;pointer-events:none}
+.post-search input{width:100%;font:500 1rem var(--sans);padding:.85rem 1rem .85rem 2.9rem;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--ink);transition:border-color .2s,box-shadow .2s}
+.post-search input:focus{outline:none;border-color:var(--violet,#6B3FA0);box-shadow:0 0 0 4px rgba(107,63,160,.15)}
+.post-count{font:600 .85rem var(--sans);color:var(--muted,#6b6480);margin:-.5rem 0 1rem}
+.post-empty{margin:0 0 1.5rem;color:var(--ink)}

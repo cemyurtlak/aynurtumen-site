@@ -63,8 +63,8 @@
 
   function stepItem() {
     const modeTxt = m => m === 'online' ? 'Online' : 'Yüz yüze';
-    const svc = services.map(x => `<div class="choice choice-row"><input type="radio" name="item" id="s-${x.id}" value="s:${x.id}" ${st.kind === 'service' && st.item.id === x.id ? 'checked' : ''}><label for="s-${x.id}"><span class="tick" aria-hidden="true"></span><span class="c-main"><b>${esc(x.name)}</b><small>${esc(x.short)}</small><span class="chips"><span>${dur(x.duration)}</span>${x.modes.map(m => `<span>${modeTxt(m)}</span>`).join('')}</span></span></label></div>`).join('');
-    const ev = events.map(x => `<div class="choice choice-row choice-ev"><input type="radio" name="item" id="e-${x.id}" value="e:${x.id}" ${st.kind === 'event' && st.item.id === x.id ? 'checked' : ''}><label for="e-${x.id}"><span class="date-badge" aria-hidden="true"><strong>${x.when.day}</strong>${x.when.month.slice(0, 3)}</span><span class="c-main"><b>${esc(x.title)}</b><small>${x.when.dow}, ${x.when.hm} · ${esc(x.location)}</small></span><span class="chips chips-end">${x.price ? '' : '<span class="chip-free">Ücretsiz</span>'}<span>${x.seats} yer kaldı</span></span><span class="tick" aria-hidden="true"></span></label></div>`).join('');
+    const svc = services.map(x => `<div class="choice choice-row"><input type="radio" name="item" id="s-${x.id}" value="s:${x.id}" ${st.kind === 'service' && st.item.id === x.id ? 'checked' : ''}><label for="s-${x.id}"><span class="tick" aria-hidden="true"></span><span class="c-main"><b>${esc(x.name)}</b><small>${esc(x.short)}</small><span class="chips">${x.modes.map(m => `<span>${modeTxt(m)}</span>`).join('')}</span></span></label></div>`).join('');
+    const ev = events.map(x => `<div class="choice choice-row choice-ev"><input type="radio" name="item" id="e-${x.id}" value="e:${x.id}" ${st.kind === 'event' && st.item.id === x.id ? 'checked' : ''}><label for="e-${x.id}"><span class="date-badge" aria-hidden="true"><strong>${x.when.day}</strong>${x.when.month.slice(0, 3)}</span><span class="c-main"><b>${esc(x.title)}</b><small>${x.when.dow}, ${x.when.hm} · ${esc(x.location)}</small></span><span class="tick" aria-hidden="true"></span></label></div>`).join('');
     return `<h2>Hangi çalışma için kayıt oluyorsun?</h2>
       <p class="group-label">Bireysel seanslar</p><div class="choice-grid cg-2">${svc}</div>
       ${events.length ? `<p class="group-label">Yaklaşan etkinlikler</p><div class="choice-list">${ev}</div>` : ''}`;
@@ -94,7 +94,7 @@
     const modeText = isEvent() ? (st.item.type === 'online' ? 'Online' : st.item.location) : st.mode === 'online' ? 'Online · görüşme odası' : 'Yüz yüze · Sarıyer';
     return `<h2>Özet</h2><div class="split"><div class="sum-box"><dl class="summary">
       <dt>Çalışma</dt><dd>${esc(st.item.name || st.item.title)}</dd>
-      <dt>Zaman</dt><dd>${whenText()}</dd><dt>Süre</dt><dd>${dur(st.item.duration)}</dd>
+      <dt>Zaman</dt><dd>${whenText()}</dd>
       <dt>Şekil</dt><dd>${esc(modeText)}</dd><dt>Ad soyad</dt><dd>${esc(st.form.name)}</dd>
       ${PAY ? `<dt>Tutar</dt><dd class="total">${st.item.priceLabel ? st.item.priceLabel + ' ' : ''}${tl(st.item.price)}</dd>` : ''}</dl></div>
       <div>${PAY ? `<label class="check"><input type="checkbox" data-agree><span>Okudum ve kabul ediyorum: <a href="${P('/yasal')}#onbilgi" target="_blank">Ön bilgilendirme formu</a>, <a href="${P('/yasal')}#mesafeli" target="_blank">mesafeli satış sözleşmesi</a>, <a href="${P('/yasal')}#iade" target="_blank">iptal-iade koşulları</a>.</span></label>` : `<p class="wa-note">Gönder’e bastığında WhatsApp açılır ve bilgilerin mesaja hazır yazılmış olur. Mesajı göndermen yeterli; onay için sana döneceğiz.</p>`}

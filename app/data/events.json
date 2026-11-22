@@ -44,7 +44,7 @@
     "location": "Online, canlı",
     "capacity": 200,
     "price": 0,
-    "description": "Yeni yıla niyetlerimizi birlikte yazarak giriyoruz. Ücretsiz, kayıt gerekli.",
+    "description": "Yeni yıla niyetlerimizi birlikte yazarak giriyoruz. Kayıt gerekli.",
     "ornek": true
   },
   {
@@ -57,7 +57,7 @@
     "capacity": 30,
     "price": 5000,
     "priceLabel": "Kapora",
-    "description": "Üç gün boyunca doğada grup aile dizimi çalışmaları, niyet ve şükran ritüelleri. Kapora ile yerinizi ayırtabilirsiniz; konaklama seçenekleri kayıttan sonra iletilir.",
+    "description": "Üç gün boyunca doğada grup aile dizimi çalışmaları, niyet ve şükran ritüelleri. Yerinizi WhatsApp üzerinden ayırtabilirsiniz; konaklama seçenekleri kayıttan sonra iletilir.",
     "ornek": true
   }
 ]

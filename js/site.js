@@ -77,6 +77,33 @@
     bar.parentElement.querySelectorAll('[data-type]').forEach(el => { el.hidden = !(f === 'all' || el.dataset.type === f); });
   }));
 
+  // Yazılarda arama + kategori (ikisi birlikte çalışır), kaç yazı gösterildiğini yazar
+  const ps = document.querySelector('[data-post-search]');
+  if (ps) {
+    const T = window.T || (x => x);
+    const sec = ps.closest('section');
+    const cards = [...sec.querySelectorAll('article[data-slug]')];
+    const countEl = sec.querySelector('[data-post-count]'), emptyEl = sec.querySelector('[data-post-empty]');
+    let hits = null, cat = 'all', timer = 0, seq = 0;
+    const init = new URLSearchParams(location.search).get('q');
+    if (init && init.trim()) hits = new Set(cards.filter(c => !c.hidden).map(c => c.dataset.slug));
+    const apply = () => {
+      let n = 0;
+      cards.forEach(c => { const ok = (!hits || hits.has(c.dataset.slug)) && (cat === 'all' || c.dataset.type === cat); c.hidden = !ok; if (ok) n++; });
+      countEl.textContent = T(n + ' yazı');
+      emptyEl.hidden = n > 0;
+    };
+    const run = () => {
+      const q = ps.value.trim(), my = ++seq;
+      const u = new URL(location.href); if (q) u.searchParams.set('q', q); else u.searchParams.delete('q'); history.replaceState(null, '', u);
+      if (!q) { hits = null; apply(); return; }
+      fetch('/api/yazi-ara?q=' + encodeURIComponent(q)).then(r => r.json()).then(d => { if (my !== seq) return; hits = new Set(d.slugs || []); apply(); }).catch(() => {});
+    };
+    ps.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 250); });
+    ps.closest('form').addEventListener('submit', e => { e.preventDefault(); clearTimeout(timer); run(); ps.blur(); });
+    sec.querySelector('.filters')?.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.filter; apply(); });
+  }
+
   // Çerez tercihi
   const cookie = document.querySelector('[data-cookie]');
   let choice = null; try { choice = localStorage.getItem('cerez'); } catch {}
