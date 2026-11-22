@@ -14,6 +14,7 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 - Bilgisayarda deneme: `php -S localhost:8080 dev-router.php` → http://localhost:8080
 
 ## Güncelleme nasıl işler
+0. Cem'in isteği: değişiklikten sonra commit ve push'u **Claude kendisi yapar** (bilgisayar kullanımıyla GitHub Desktop: özet yaz → Commit to main → Push origin), sonra Actions'ta "BİTTİ ✓"yi kontrol edip Cem'e bildirir.
 1. GitHub Desktop → Commit → Push (depo: cemyurtlak/aynurtumen-site, dal: main).
 2. GitHub Actions (`.github/workflows/guncelle.yml`) sunucudaki `guncelle.php`'yi gizli anahtarla çağırır.
 3. `guncelle.php` depoyu zip olarak indirir, PHP dosyalarını sözdizimi için dener, değişen dosyaları yazar. **Hiçbir dosyayı silmez.**
