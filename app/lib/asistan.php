@@ -91,10 +91,13 @@ KURALLAR
 8. Üslup: sıcak, sade, saygılı; "siz" diye hitap et; en fazla 4-5 kısa cümle; en fazla bir emoji (🌸 gibi). Madde işareti gerekirse WhatsApp'a uygun kısa satırlar kullan, Markdown başlığı kullanma.
 9. Kişinin yazdığı dilde cevap ver (Türkçe, İngilizce, Rusça ya da Almanca). Ücretleri TL olarak aynen yaz.
 10. Selam ya da teşekkür gibi kısa mesajlara kısa ve sıcak karşılık ver; konuyu uzatma.
+11. Yönlendirme: Kişinin anlattığı ihtiyaca en uygun çalışmayı (bireysel/grup, online/yüz yüze) kısa gerekçesiyle öner ve nazik bir sonraki adım teklif et ("Sizin için uygun bir zaman ayarlamamızı ister misiniz?" gibi). Kararsızsa soru sormasına alan bırak. Baskı kurma, aciliyet ya da indirim uydurma, kişinin duygusal durumunu satış için kullanma; "hayır" ya da "düşüneceğim" cevabına saygı göster.
+12. Doğal konuş: kalıp cümleler ve her mesajda kendini tanıtma yok; ama sorulursa dijital asistan olduğunu her zaman dürüstçe söyle.
 
 ÇIKTI
 Yalnızca şu biçimde tek bir JSON nesnesi döndür, başka hiçbir şey yazma:
-{"cevap": "kişiye gidecek mesaj", "devret": false, "neden": "", "dil": "tr"}
+{"cevap": "kişiye gidecek mesaj", "devret": false, "neden": "", "dil": "tr", "ozet": "ekip için kısa not"}
+"ozet": Konuşmanın tamamından, yalnızca kişinin kendi söylediklerine dayanan 1-3 cümlelik not: ilgilendiği çalışma, tercihleri (online/yüz yüze, gün/saat, dil), sorduğu ve takıldığı noktalar, verdiği iletişim bilgisi. Kişilik, ruh hâli ya da psikolojik yorum ekleme; kişinin anlattığı özel/aile konusunu ayrıntılandırma ("kişisel bir konu paylaştı" demen yeterli).
 "devret" true ise "neden" şunlardan biri olsun: kayıt, dekont, kişisel, acil, bilinmiyor, güncelleme, diğer.
 
 BİLGİ
@@ -140,13 +143,13 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
   }
 
   /* ---------- bildirim ---------- */
-  static function notify(array $c, string $why, string $last): void {
+  static function notify(array $c, string $why, string $last, string $ozet = ''): void {
     $to = preg_replace('/\D/', '', env('ASISTAN_BILDIRIM_NUMARASI'));
     $label = ['kayit' => 'Kayıt isteği', 'kayıt' => 'Kayıt isteği', 'dekont' => 'Dekont geldi', 'kisisel' => 'Kişisel konu', 'kişisel' => 'Kişisel konu',
       'acil' => '⚠️ ACİL', 'bilinmiyor' => 'Cevabı bilinmeyen soru', 'butce' => 'Asistan bütçesi doldu', 'medya' => 'Dosya/ses geldi', 'güncelleme' => 'Kişi tercihini değiştirdi', 'guncelleme' => 'Kişi tercihini değiştirdi'][$why] ?? 'İnsan cevabı gerekiyor';
     self::log("DEVIR {$c['phone']} $why");
     if ($to === '') return;
-    WhatsApp::sendText($to, "🔔 $label\n" . ($c['name'] ?: 'İsimsiz') . ' · +' . $c['phone'] . "\nSon mesaj: " . mb_substr($last, 0, 300) . "\n\nAsistan genel soruları cevaplamaya devam eder. Siz bu kişiye WhatsApp Business uygulamasından yazdığınızda " . self::INSAN_SAAT . ' saat araya girmez.');
+    WhatsApp::sendText($to, "🔔 $label\n" . ($c['name'] ?: 'İsimsiz') . ' · +' . $c['phone'] . "\nSon mesaj: " . mb_substr($last, 0, 300) . ($ozet !== '' ? "\n📝 Özet: " . mb_substr($ozet, 0, 500) : '') . "\n👉 wa.me/" . $c['phone'] . "\n\nAsistan genel soruları cevaplamaya devam eder. Siz bu kişiye WhatsApp Business uygulamasından yazdığınızda " . self::INSAN_SAAT . ' saat araya girmez.');
   }
 
   /* ---------- gelen mesaj ---------- */
@@ -189,6 +192,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
         $reply = trim((string)$o['cevap']);
         if (!empty($o['dil']) && in_array($o['dil'], ['tr', 'en', 'ru', 'de'], true)) $c['lang'] = $o['dil'];
         if (!empty($o['devret'])) $handoff = (string)($o['neden'] ?: 'diğer');
+        if (!empty($o['ozet'])) $c['ozet'] = mb_substr(trim((string)$o['ozet']), 0, 600);
       } catch (Throwable $e) {
         self::log('HATA ' . $e->getMessage());
         $reply = self::fixed('butce', $c['lang']); $handoff = 'bilinmiyor';
@@ -206,7 +210,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       $c['handoffAt'] = time(); if (!in_array($handoff, ['güncelleme', 'guncelleme'], true)) $c['handoffWhy'] = $handoff;
       if ($again) $c['notifiedAt'] = time();
       self::save($c);
-      if ($again) self::notify($c, $handoff, $label);
+      if ($again) self::notify($c, $handoff, $label, (string)($c['ozet'] ?? ''));
       return;
     }
     self::save($c);
