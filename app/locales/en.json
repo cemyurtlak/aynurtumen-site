@@ -595,5 +595,10 @@
  "Sohbet": "Chat",
  "Mesajınızı yazın…": "Type your message…",
  "Gönder": "Send",
- "Lütfen ad, telefon ve mesaj alanlarını doldurup KVKK onayını işaretleyin.": "Please fill in your name, phone and message and tick the privacy consent box."
+ "Lütfen ad, telefon ve mesaj alanlarını doldurup KVKK onayını işaretleyin.": "Please fill in your name, phone and message and tick the privacy consent box.",
+ "Kaydı gönder": "Send registration",
+ "Gönderiliyor…": "Sending…",
+ "Gönder’e bastığında bilgilerin ekibimize iletilir; onay için sana WhatsApp’tan döneceğiz.": "When you press Send, your details go to our team; we will confirm with you on WhatsApp.",
+ "Çalışmayı seç, uygun saati belirle, bilgilerini yaz. Talebin ekibimize iletilir, onay için sana WhatsApp’tan döneriz.": "Choose the session, pick a suitable time and enter your details. Your request goes to our team and we confirm with you on WhatsApp.",
+ "Kaydınız alındı ve bilgileriniz ekibimize iletildi. Saatiniz sizin için ayrıldı; onay için size WhatsApp’tan döneceğiz.": "Your registration has been received and your details have been passed to our team. Your time slot is reserved; we will confirm with you on WhatsApp."
 }

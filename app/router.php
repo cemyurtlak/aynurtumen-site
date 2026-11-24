@@ -161,6 +161,8 @@ switch (true) {
     if (isset($r['errors'])) { json_out(['errors' => $r['errors']], 400); break; }
     $b = $r['booking'];
     later(fn() => Booking::requested($b));
+    // Asistan ayarlıysa bilgiler doğrudan ekibin WhatsApp'ına gider; ziyaretçinin WhatsApp'ı açılmaz
+    if (form_wa_on() && Booking::notifyTeam($b)) { json_out(['redirect' => "/randevu/talep/{$b['id']}?k={$b['key']}&g=1"]); break; }
     json_out(['wa' => Booking::waUrl($b), 'redirect' => "/randevu/talep/{$b['id']}?k={$b['key']}"]); break;
   case $method === 'GET' && (bool)preg_match('#^/randevu/talep/(\w+)$#', $path, $m):
     $b = Booking::find($m[1], (string)($_GET['k'] ?? ''));

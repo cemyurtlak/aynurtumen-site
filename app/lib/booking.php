@@ -151,6 +151,22 @@ final class Booking {
     return 'https://wa.me/' . Store::read('settings', [])['phoneIntl'] . '?text=' . js_uri(implode("\n", $lines));
   }
 
+  // Ekibe WhatsApp bildirimi (Türkçe, kişinin girdiği tüm bilgilerle)
+  static function notifyTeam(array $b): bool {
+    $ev = !empty($b['eventId']) ? Events::find($b['eventId']) : null;
+    $mode = $ev ? ($ev['type'] === 'online' ? 'Online' : $ev['location']) : ($b['mode'] === 'online' ? 'Online' : 'Yüz yüze');
+    $tel = preg_replace('/\D/', '', $b['phone']);
+    if (strlen($tel) === 10 && $tel[0] === '5') $tel = '90' . $tel; elseif (strlen($tel) === 11 && $tel[0] === '0') $tel = '9' . $tel;
+    $lines = ['Çalışma: ' . $b['itemName'], 'Şekil: ' . $mode, 'Zaman: ' . self::fmtDate($b['start']) . ' (TR saati)'];
+    if ($b['email'] !== '') $lines[] = 'E-posta: ' . $b['email'];
+    if ($b['note'] !== '') $lines[] = 'Not: ' . $b['note'];
+    if (($b['lang'] ?? 'tr') !== 'tr') $lines[] = 'Dil: ' . I18n::NAMES[$b['lang']];
+    $lines[] = 'Kayıt no: ' . $b['id'];
+    $lines[] = '👉 wa.me/' . $tel;
+    return Asistan::team(!empty($b['eventId']) ? '🎟️ Yeni etkinlik kaydı' : '📅 Yeni randevu talebi', $b['name'] . ' · ' . $b['phone'], implode("\n", $lines),
+      'Saat ' . self::REQUEST_HOURS . ' saat ayrılı tutulur. Kesinleşince yönetim panelinden onaylayın.');
+  }
+
   static function find(string $id, ?string $key = null): ?array {
     foreach (Store::read('bookings', []) as $b) if ($b['id'] === $id) return ($key !== null && $b['key'] !== $key) ? null : $b;
     return null;

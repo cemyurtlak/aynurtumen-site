@@ -595,5 +595,10 @@
  "Sohbet": "Chat",
  "Mesajınızı yazın…": "Ihre Nachricht…",
  "Gönder": "Senden",
- "Lütfen ad, telefon ve mesaj alanlarını doldurup KVKK onayını işaretleyin.": "Bitte füllen Sie Name, Telefon und Nachricht aus und bestätigen Sie die Datenschutzeinwilligung."
+ "Lütfen ad, telefon ve mesaj alanlarını doldurup KVKK onayını işaretleyin.": "Bitte füllen Sie Name, Telefon und Nachricht aus und bestätigen Sie die Datenschutzeinwilligung.",
+ "Kaydı gönder": "Anmeldung senden",
+ "Gönderiliyor…": "Wird gesendet…",
+ "Gönder’e bastığında bilgilerin ekibimize iletilir; onay için sana WhatsApp’tan döneceğiz.": "Wenn Sie auf Senden drücken, gehen Ihre Angaben an unser Team; zur Bestätigung melden wir uns per WhatsApp.",
+ "Çalışmayı seç, uygun saati belirle, bilgilerini yaz. Talebin ekibimize iletilir, onay için sana WhatsApp’tan döneriz.": "Wählen Sie das Angebot und eine passende Uhrzeit und geben Sie Ihre Daten ein. Ihre Anfrage geht an unser Team, zur Bestätigung melden wir uns per WhatsApp.",
+ "Kaydınız alındı ve bilgileriniz ekibimize iletildi. Saatiniz sizin için ayrıldı; onay için size WhatsApp’tan döneceğiz.": "Ihre Anmeldung ist eingegangen und Ihre Angaben wurden an unser Team weitergeleitet. Ihr Termin ist reserviert; zur Bestätigung melden wir uns per WhatsApp."
 }

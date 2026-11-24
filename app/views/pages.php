@@ -763,12 +763,12 @@ function page_randevu(array $query): string {
   $V = asset_version();
   $body = <<<HTML
 
-  {$_(pageHead('Randevu al', 'Çalışmayı seç, uygun saati belirle, bilgilerini yaz. Talebin hazır bir mesaj olarak WhatsApp’ta açılır.', 'Randevu'))}
+  {$_(pageHead('Randevu al', form_wa_on() ? 'Çalışmayı seç, uygun saati belirle, bilgilerini yaz. Talebin ekibimize iletilir, onay için sana WhatsApp’tan döneriz.' : 'Çalışmayı seç, uygun saati belirle, bilgilerini yaz. Talebin hazır bir mesaj olarak WhatsApp’ta açılır.', 'Randevu'))}
   <section class="booking-sec"><div class="wrap">
     <div class="wizard" id="wizard" data-i18n-live
       data-services='{$_(esc($svcJson))}'
       data-events='{$_(esc($evJson))}'
-      data-pre-service="{$_(esc($query['hizmet'] ?? ''))}" data-pre-event="{$_(esc($query['etkinlik'] ?? ''))}" data-pay="wa" data-mail="{$_(mail_on() ? '1' : '0')}" data-wa-icon="{$_(esc(WA_ICON))}">
+      data-pre-service="{$_(esc($query['hizmet'] ?? ''))}" data-pre-event="{$_(esc($query['etkinlik'] ?? ''))}" data-pay="wa" data-wa="{$_(form_wa_on() ? '1' : '0')}" data-mail="{$_(mail_on() ? '1' : '0')}" data-wa-icon="{$_(esc(WA_ICON))}">
       <ol class="steps-bar" aria-label="Adımlar"><li>Çalışma</li><li>Görüşme şekli</li><li>Tarih ve saat</li><li>Bilgilerin</li><li>Özet</li></ol>
       <div class="wizard-body" aria-live="polite"></div>
       <div class="wizard-nav"><button class="btn btn-line" type="button" data-back>Geri</button><button class="btn btn-violet" type="button" data-next>Devam et</button></div>
@@ -795,7 +795,10 @@ HTML;
 function page_talep(array $b): string {
   $d = ist($b['start']);
   $first = explode(' ', $b['name'])[0];
-  $rest = "\n      <p class=\"load-in\" style=\"--d:300ms\">Saatin senin için ayrıldı. WhatsApp açılmadıysa aşağıdaki düğmeyle bilgilerini mesaj olarak gönder; onay için sana döneceğiz.</p>
+  $sent = !empty($_GET['g']);
+  $rest = $sent ? "\n      <p class=\"load-in\" style=\"--d:300ms\">Kaydınız alındı ve bilgileriniz ekibimize iletildi. Saatiniz sizin için ayrıldı; onay için size WhatsApp’tan döneceğiz.</p>
+      <div class=\"btn-row load-in\" style=\"--d:350ms\"><a class=\"btn btn-line-light\" href=\"/\">Ana sayfaya dön</a></div>
+" : "\n      <p class=\"load-in\" style=\"--d:300ms\">Saatin senin için ayrıldı. WhatsApp açılmadıysa aşağıdaki düğmeyle bilgilerini mesaj olarak gönder; onay için sana döneceğiz.</p>
       <div class=\"btn-row load-in\" style=\"--d:350ms\">
         <a class=\"btn btn-wa\" href=\"" . esc(Booking::waUrl($b)) . "\" target=\"_blank\" rel=\"noopener\">" . WA_ICON . " WhatsApp'tan gönder</a>
         <a class=\"btn btn-line-light\" href=\"/\">Ana sayfaya dön</a>

@@ -30,7 +30,8 @@
   const isEvent = () => st.kind === 'event';
   const MAIL = root.dataset.mail === '1'; // e-posta sistemi kapalıyken e-posta alanı isteğe bağlı
   const PAY = root.dataset.pay === 'online'; // sitede ödeme yoksa bilgiler WhatsApp mesajı olarak açılır
-  const goLabel = () => !PAY ? 'WhatsApp’tan gönder' : st.item.price ? `${tl(st.item.price)} öde` : 'Kaydı tamamla';
+  const WA = root.dataset.wa === '1'; // bilgiler doğrudan ekibe gider, ziyaretçinin WhatsApp'ı açılmaz
+  const goLabel = () => !PAY ? (WA ? 'Kaydı gönder' : 'WhatsApp’tan gönder') : st.item.price ? `${tl(st.item.price)} öde` : 'Kaydı tamamla';
   const needMode = () => !isEvent() && st.item && st.item.modes.length > 1;
   const steps = () => [0, needMode() ? 1 : null, isEvent() ? null : 2, 3, 4].filter(x => x !== null);
   const whenText = () => isEvent() ? `${st.item.when.long}, ${st.item.when.hm}` : st.date ? `${fmtDay(st.date)}, ${st.time}${away && st.time ? ` (${T('Sizin saatinizle')}: ${localHM(st.date, st.time)})` : ''}` : '';
@@ -41,7 +42,7 @@
   function fmtDay(key) { return cap(new Date(key + 'T12:00:00').toLocaleDateString(LOC, { day: 'numeric', month: 'long', weekday: 'long' })); }
 
   function setNext(label) { // WhatsApp düğmesinde simge de olsun
-    next.innerHTML = (!PAY && label === goLabel() && st.step === 4 ? root.dataset.waIcon + ' ' : '') + esc(label);
+    next.innerHTML = (!PAY && !WA && label === goLabel() && st.step === 4 ? root.dataset.waIcon + ' ' : '') + esc(label);
   }
   function render() {
     const s = st.step;
@@ -98,7 +99,7 @@
       <dt>Zaman</dt><dd>${whenText()}</dd>
       <dt>Şekil</dt><dd>${esc(modeText)}</dd><dt>Ad soyad</dt><dd>${esc(st.form.name)}</dd>
       ${PAY ? `<dt>Tutar</dt><dd class="total">${st.item.priceLabel ? st.item.priceLabel + ' ' : ''}${tl(st.item.price)}</dd>` : ''}</dl></div>
-      <div>${PAY ? `<label class="check"><input type="checkbox" data-agree><span>Okudum ve kabul ediyorum: <a href="${P('/yasal')}#onbilgi" target="_blank">Ön bilgilendirme formu</a>, <a href="${P('/yasal')}#mesafeli" target="_blank">mesafeli satış sözleşmesi</a>, <a href="${P('/yasal')}#iade" target="_blank">iptal-iade koşulları</a>.</span></label>` : `<p class="wa-note">Gönder’e bastığında WhatsApp açılır ve bilgilerin mesaja hazır yazılmış olur. Mesajı göndermen yeterli; onay için sana döneceğiz.</p>`}
+      <div>${PAY ? `<label class="check"><input type="checkbox" data-agree><span>Okudum ve kabul ediyorum: <a href="${P('/yasal')}#onbilgi" target="_blank">Ön bilgilendirme formu</a>, <a href="${P('/yasal')}#mesafeli" target="_blank">mesafeli satış sözleşmesi</a>, <a href="${P('/yasal')}#iade" target="_blank">iptal-iade koşulları</a>.</span></label>` : (WA ? `<p class="wa-note">Gönder’e bastığında bilgilerin ekibimize iletilir; onay için sana WhatsApp’tan döneceğiz.</p>` : `<p class="wa-note">Gönder’e bastığında WhatsApp açılır ve bilgilerin mesaja hazır yazılmış olur. Mesajı göndermen yeterli; onay için sana döneceğiz.</p>`)}
       ${PAY ? `<div class="trust"><span>3D Secure</span><span>256-bit SSL</span><span>Visa · Mastercard · Troy</span><span>Taksit seçenekleri</span></div>
       <p class="small" style="margin-top:1rem">Ödemeyi onayladığında güvenli ödeme sayfasına yönlendirileceksin. Kart bilgilerin bu sitede saklanmaz.</p>` : ''}
       <p class="form-error" data-err hidden></p></div></div>`;
@@ -170,7 +171,7 @@
   next.onclick = async () => {
     if (!valid()) return;
     if (st.step !== 4) return go(1);
-    next.disabled = true; next.textContent = PAY ? 'Yönlendiriliyor…' : 'WhatsApp açılıyor…';
+    next.disabled = true; next.textContent = PAY ? 'Yönlendiriliyor…' : (WA ? 'Gönderiliyor…' : 'WhatsApp açılıyor…');
     const payload = { ...st.form, lang: LANG, ...(isEvent() ? { eventId: st.item.id } : { serviceId: st.item.id, mode: st.mode, date: st.date, time: st.time }) };
     try {
       const r = await fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
