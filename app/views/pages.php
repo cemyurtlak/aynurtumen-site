@@ -704,7 +704,7 @@ function feeCard(string $title, string $meta, array $fees, array $notes): string
 function page_bilgi(): string {
   $_ = fn($x) => $x;
   $T = fn($x) => OFF . $x . ON; // tutarlar her dilde aynı yazılır
-  $online = feeCard('Bireysel seans', 'Online · WhatsApp görüntülü görüşme', [['Seans ücreti', $T('6.500 TL')]], [
+  $online = feeCard('Bireysel seans', 'Online · WhatsApp görüntülü görüşme', [['Seans süresi', '1 saat'], ['Seans ücreti', $T('6.500 TL')]], [
       'İlk seansta sizi zorlayan dinamikler belirlenir ve bir yol haritası çizilir.',
       'Dinamiklerin içeriğine göre 1-2 seans daha gerekebilir. Seanslar arasında belli bir süre beklemek gerekmez.',
       'Belirlenen saatte Aynur Tümen’i WhatsApp’tan görüntülü arayarak seansınızı başlatırsınız.'])
@@ -717,7 +717,7 @@ function page_bilgi(): string {
       'Gün içindeki açık büfe yiyecek ve içecek ikramı ücrete dahildir. Ücretler bir günlük katılım içindir.',
       'Tarihler etkinlikler sayfasında duyurulur. Tam adres kayıttan sonra iletilir.',
       'Kayıttan sonraki 24 saat içinde ödeme yapılmazsa kayıt talebi iptal olur.'])
-    . feeCard('Bireysel seans', 'Yüz yüze · İstanbul', [['Seans ücreti', $T('15.000 TL')]], [
+    . feeCard('Bireysel seans', 'Yüz yüze · İstanbul', [['Seans süresi', '1 saat'], ['Seans ücreti', $T('15.000 TL')]], [
       'İlk seansta dinamikler belirlenir ve yol haritası çizilir; gerekirse 1-2 seans daha yapılır.',
       'Konum bilgisi randevunuz kesinleştikten sonra paylaşılır.']);
   $body = <<<HTML
@@ -739,6 +739,9 @@ function page_bilgi(): string {
       <li><b>Dekontu gönderin.</b> Ödeme dekontunu aynı WhatsApp hattına gönderdiğinizde kaydınız kesinleşir.</li>
       <li><b>Gün ve saat belirlenir.</b> Seansınız ya da çalışmanız için gün ve saat birlikte belirlenir.</li>
     </ol>
+    <h2 class="reveal about-h">Aile dizimi nedir?</h2>
+    <p class="reveal">Aile dizimi, ailemizden yalnızca kalıtımsal özellikleri değil, ruhsal ve psikolojik bir miras olarak tanımlanabilecek özellikleri de devraldığımızı kabul eder. Amaç bu mirası gün ışığına çıkarmak; böylece kişinin hayatında yaşadığı ve sebebini bilmediği sıkıntıların kaynağını bulmasını ve sorunlarını bu kaynak çerçevesinde çözmesini sağlamaktır.</p>
+    <p class="reveal">Yaşam koçu ve kolaylaştırıcı Aynur Tümen eşliğinde bu yolda ilk adımı atabilir; karanlık odanın aydınlıkla dolmasını, sorunlarınızın gün ışığına çıkmasını sağlayabilirsiniz.</p>
     <div class="btn-row reveal"><a class="btn btn-wa" href="{$_(wa('Merhaba, bilgilendirme sayfasını okudum. Kayıt olmak istiyorum.'))}" target="_blank" rel="noopener">{$_(WA_ICON)} WhatsApp’tan yazın</a><a class="btn btn-line" href="/etkinlikler">Yaklaşan etkinlikler</a></div>
     <p class="more-links reveal">Aynur Tümen’i ve aile dizimini daha yakından tanımak için: <a href="/aile-dizimi">Aile dizimi nedir?</a> · <a href="/hakkinda">Hakkında</a> · <a href="/yazilar">Yazılar</a> · <a href="/videolar">Videolar</a></p>
   </div></section>

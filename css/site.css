@@ -653,3 +653,4 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--violet);box
 .how b{color:var(--ink)}
 .more-links{margin-top:1.6rem;color:var(--muted);font-size:.95rem}
 @media (max-width:520px){.fee-card{padding:1.2rem}.fee-grid{grid-template-columns:1fr}}
+.about-h{margin-top:2.6rem}
