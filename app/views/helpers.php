@@ -47,3 +47,6 @@ function wa(string $text): string { return waLink(settings()['phoneIntl'], $text
 function join_map(array $list, callable $fn): string { $o = ''; foreach (array_values($list) as $i => $x) $o .= $fn($x, $i); return $o; }
 const OFF = '<!--i18n-off-->';
 const ON = '<!--i18n-on-->';
+// İletişim formu doğrudan ekibin WhatsApp'ına gidebilir mi (asistan ayarlı ve bildirim numarası var)
+function form_wa_on(): bool { return WhatsApp::on() && preg_replace('/\D/', '', env('ASISTAN_BILDIRIM_NUMARASI')) !== ''; }
+function chat_on(): bool { return env('ANTHROPIC_API_KEY') !== '' && env('ASISTAN_KAPALI') !== '1' && env('SOHBET_KAPALI') !== '1'; }

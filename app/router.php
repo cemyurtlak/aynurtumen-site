@@ -96,9 +96,17 @@ switch (true) {
   case $route === 'POST /iletisim':
     $b = $_POST;
     if (!empty($b['website'])) { html(page_iletisim(true)); break; } // bot tuzağı
-    if (empty($b['name']) || (mail_on() && empty($b['email'])) || empty($b['message']) || empty($b['kvkk'])) { html(page_iletisim(false, mail_on() ? 'Lütfen ad, e-posta ve mesaj alanlarını doldurup KVKK onayını işaretleyin.' : 'Lütfen ad ve mesaj alanlarını doldurup KVKK onayını işaretleyin.'), 400); break; }
-    $msg = ['id' => rand_hex(4), 'at' => gmdate('Y-m-d\TH:i:s.v\Z'), 'name' => (string)$b['name'], 'email' => (string)$b['email'], 'phone' => (string)($b['phone'] ?? ''), 'topic' => (string)($b['topic'] ?? ''), 'message' => mb_substr((string)$b['message'], 0, 3000), 'read' => false];
+    $waForm = !mail_on() && form_wa_on();
+    if (empty($b['name']) || (mail_on() && empty($b['email'])) || ($waForm && strlen(preg_replace('/\D/', '', (string)($b['phone'] ?? ''))) < 10) || empty($b['message']) || empty($b['kvkk'])) { html(page_iletisim(false, mail_on() ? 'Lütfen ad, e-posta ve mesaj alanlarını doldurup KVKK onayını işaretleyin.' : ($waForm ? 'Lütfen ad, telefon ve mesaj alanlarını doldurup KVKK onayını işaretleyin.' : 'Lütfen ad ve mesaj alanlarını doldurup KVKK onayını işaretleyin.')), 400); break; }
+    $msg = ['id' => rand_hex(4), 'at' => gmdate('Y-m-d\TH:i:s.v\Z'), 'name' => (string)$b['name'], 'email' => (string)($b['email'] ?? ''), 'phone' => (string)($b['phone'] ?? ''), 'topic' => (string)($b['topic'] ?? ''), 'message' => mb_substr((string)$b['message'], 0, 3000), 'read' => false];
     Store::update('messages', [], function ($l) use ($msg) { $l[] = $msg; return $l; });
+    if ($waForm) { // mesaj doğrudan ekibin WhatsApp'ına bildirim olarak gider; ziyaretçinin WhatsApp'ı açılmaz
+      $tel = preg_replace('/\D/', '', $msg['phone']);
+      if (strlen($tel) === 10 && $tel[0] === '5') $tel = '90' . $tel; elseif (strlen($tel) === 11 && $tel[0] === '0') $tel = '9' . $tel;
+      $ok = Asistan::team('📩 Siteden yeni mesaj', $msg['name'] . ' · ' . $msg['phone'], 'Konu: ' . $msg['topic'] . "\n" . $msg['message'] . "\n👉 wa.me/$tel");
+      if ($ok) { html(page_iletisim(true)); break; }
+      // gönderilemezse eski yönteme düş: ziyaretçinin WhatsApp'ında hazır mesaj açılır
+    }
     if (!mail_on()) { // e-posta kapalı: mesaj kaydedilir ve WhatsApp'ta hazır yazılmış olarak açılır
       $wa = implode("\n", array_merge(['Merhaba, web sitenizden yazıyorum.', '', 'Ad soyad: ' . $msg['name']], $msg['phone'] !== '' ? ['Telefon: ' . $msg['phone']] : [], ['Konu: ' . $msg['topic'], '', $msg['message']]));
       redirect('https://wa.me/' . settings()['phoneIntl'] . '?text=' . js_uri($wa), 303); break;
@@ -113,6 +121,11 @@ switch (true) {
   case $route === 'GET /api/yazi-ara': json_out(['slugs' => search_posts(posts(), (string)($_GET['q'] ?? ''), (string)($_GET['lang'] ?? 'tr'))]); break;
   // Yazı çevirisi (Gemini): GitHub'daki zamanlanmış iş çağırır; güncelleme anahtarıyla korunur
   /* ---------- WhatsApp asistanı (Meta Cloud API webhook) ---------- */
+  case $route === 'POST /api/sohbet':
+    $b = body();
+    if (!WhatsApp::on() && env('ANTHROPIC_API_KEY') === '') { json_out(['ok' => false], 503); break; }
+    $lang = in_array($b['lang'] ?? '', I18n::LANGS, true) ? $b['lang'] : 'tr';
+    json_out(Asistan::web((string)($b['sid'] ?? ''), (string)($b['mesaj'] ?? ''), $lang, (string)($_SERVER['REMOTE_ADDR'] ?? ''), (string)($b['sayfa'] ?? ''))); break;
   case $route === 'GET /api/whatsapp':
     $ch = WhatsApp::verify($_GET);
     if ($ch === null) { http_response_code(403); echo 'forbidden'; break; }

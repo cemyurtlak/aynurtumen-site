@@ -44,6 +44,16 @@ function layout(array $o): string {
   $ogAlt = join_map(array_filter(I18n::LANGS, fn($l) => $l !== $L), fn($l) => '<meta property="og:locale:alternate" content="' . I18n::OG[$l] . '">');
   $socialLi = fn($k, $label) => !empty($social[$k]) ? '<li><a href="' . esc($social[$k]) . '" target="_blank" rel="noopener">' . $label . '</a></li>' : '';
   $year = date('Y');
+  // Sohbet asistanı (sağ altta). Metinler burada Türkçe; sayfa diline translateHtml çevirir.
+  $chat = chat_on() && empty($o['noChat']) ? '<div class="chat" data-chat>'
+    . '<button class="chat-fab" type="button" data-chat-open aria-label="Sohbet asistanını açın" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.2 3.6a.5.5 0 0 1-.8-.4V16h-.5A2.5 2.5 0 0 1 2 13.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="9.5" r="1.1" fill="currentColor"/><circle cx="12" cy="9.5" r="1.1" fill="currentColor"/><circle cx="16" cy="9.5" r="1.1" fill="currentColor"/></svg><span>Soru sorun</span></button>'
+    . '<section class="chat-panel" data-chat-panel role="dialog" aria-label="Sohbet" hidden>'
+    . '<header><div><b>Aynur Tümen ekibi</b><small>Dijital asistan · hemen yanıt verir</small></div><button type="button" class="chat-x" data-chat-close aria-label="Kapat">×</button></header>'
+    . '<div class="chat-log" data-chat-log aria-live="polite"><p class="msg bot" data-chat-hello>Merhaba 🌸 Çalışmalar, ücretler ya da kayıt hakkında merak ettiğiniz bir şey var mı?</p></div>'
+    . '<form class="chat-form" data-chat-form><label class="sr-only" for="chat-in">Mesajınız</label><textarea id="chat-in" rows="1" maxlength="1500" placeholder="Mesajınızı yazın…" required></textarea><button type="submit" aria-label="Gönder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-6 16-2.5-6.5L4 12Z" fill="currentColor"/></svg></button></form>'
+    . '<p class="chat-note">Yanıtlar yapay zekâ ile hazırlanır; kayıt ve kişisel konular için ekibimiz size döner. <a href="/yasal#kvkk">KVKK</a></p>'
+    . '<span hidden data-chat-err>Bağlantı kurulamadı. Lütfen biraz sonra tekrar deneyin ya da WhatsApp’tan yazın.</span>'
+    . '</section></div>' : '';
   $clientJs = $client && $L !== 'tr' ? '<script>window.I18N=' . str_replace('<', '\\u003c', js_json((object)I18n::clientDict($L))) . '</script><script src="/js/i18n.js?v=' . $V . '" defer></script>' : '';
   $canon = esc($site . I18n::prefix($self, $L));
   $img = esc("$site/images/paylasim-$L.jpg?v=3");
@@ -131,12 +141,14 @@ $body
   </div>
 </footer>
 <a class="wa-float" href="$wa" target="_blank" rel="noopener" aria-label="WhatsApp'tan yazın">{$_(WA_ICON)}</a>
+{$_($chat)}
 <div class="cookie" data-cookie hidden role="dialog" aria-label="Çerez tercihi">
   <p>Siteyi geliştirmek için çerezler kullanıyoruz. <a href="/yasal#cerez">Ayrıntılar</a></p>
   <div><button class="btn btn-gold btn-sm" data-cookie-ok="all">Kabul et</button><button class="btn btn-line-light btn-sm" data-cookie-ok="min">Yalnızca zorunlu</button></div>
 </div>
 $clientJs
 <script src="/js/site.js?v=$V" defer></script>
+{$_($chat ? '<script src="/js/sohbet.js?v=' . $V . '" defer></script>' : '')}
 $scripts
 </body>
 </html>

@@ -39,3 +39,9 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 - Ertesi gün takip mesajı 20–23,5. saatte (24 saatlik ücretsiz pencere içinde). Konuşmalar `app/data/whatsapp/` içinde, 90 günde silinir; harcama `_kullanim.json`, olaylar `_gunluk.log`.
 - Aylık tavan ASISTAN_AYLIK_TAVAN_USD (varsayılan 5$); Console tarafında da aylık 10$ sınır ve otomatik yükleme kapalı.
 - Test: okulun k12 Meta uygulaması + test numarası. Canlıda Aynur Hanım'ın kendi Meta Business hesabı ve numarası (coexistence) bağlanacak.
+
+## İletişim formu ve web sohbeti
+- Asistan ayarlıysa (`form_wa_on()`) iletişim formu ziyaretçinin WhatsApp'ını açmaz: mesaj `Asistan::team()` ile ASISTAN_BILDIRIM_NUMARASI'na gider (telefon zorunlu). Gönderilemezse eski wa.me yöntemine düşer.
+- `Asistan::team()`: önce düz mesaj (24 saat penceresi), olmazsa `WA_SABLON_BILDIRIM` şablonu ({{1}} başlık, {{2}} kişi, {{3}} ayrıntı). Şablon için Meta'da ödeme yöntemi gerekir.
+- Web sohbeti: `js/sohbet.js` + layout'taki `[data-chat]` (metinler Türkçe, translateHtml çevirir) → `POST /api/sohbet` → `Asistan::web()`. Konuşmalar `app/data/whatsapp/w_<sid>.json`. Ad/telefon alınınca ekibe özetli bildirim. Kapatmak için `SOHBET_KAPALI=1`.
+- Asistan dürüsttür: sorulursa dijital asistan olduğunu söyler; kişilik/psikolojik analiz yapılmaz, yalnız kişinin söylediklerinden özet.

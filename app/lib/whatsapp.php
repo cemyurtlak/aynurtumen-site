@@ -68,6 +68,13 @@ final class WhatsApp {
     return self::call(['recipient_type' => 'individual', 'to' => $to, 'type' => 'text', 'text' => ['preview_url' => true, 'body' => mb_substr($text, 0, 4000)]]);
   }
 
+  // Onaylı şablonla mesaj (24 saatlik pencere dışında da gider). Parametrelerde satır sonu ve sekme olamaz.
+  static function sendTemplate(string $to, string $name, array $params, string $lang = 'tr'): array {
+    $clean = fn($v) => mb_substr(trim(preg_replace('/\s{2,}/u', ' ', str_replace(["\r", "\n", "\t"], ' · ', (string)$v))), 0, 900) ?: '-';
+    return self::call(['to' => $to, 'type' => 'template', 'template' => ['name' => $name, 'language' => ['code' => $lang],
+      'components' => [['type' => 'body', 'parameters' => array_map(fn($v) => ['type' => 'text', 'text' => $clean($v)], $params)]]]]);
+  }
+
   static function markRead(string $msgId): void {
     if ($msgId !== '') self::call(['status' => 'read', 'message_id' => $msgId]);
   }

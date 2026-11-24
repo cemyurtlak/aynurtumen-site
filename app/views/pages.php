@@ -645,13 +645,13 @@ function page_iletisim(bool $sent = false, ?string $error = null): string {
 
       <form class="form" method="post" action="/iletisim">
         $err
-        <div class="row"><label>Ad soyad<input name="name" required autocomplete="name"></label><label>Telefon<input name="phone" type="tel" autocomplete="tel"></label></div>
+        <div class="row"><label>Ad soyad<input name="name" required autocomplete="name"></label><label>Telefon<input name="phone" type="tel" autocomplete="tel"{$_(!mail_on() && form_wa_on() ? ' required placeholder="05xx xxx xx xx"' : '')}></label></div>
         {$_(mail_on() ? '<label>E-posta<input name="email" type="email" required autocomplete="email"></label>' : '')}
         <label>Konu<select name="topic"><option>Bireysel aile dizimi</option><option>Grup çalışmaları ve kamplar</option><option>Akademi ve eğitimler</option><option>Kurumsal seminer</option><option>Basın ve iş birliği</option><option>Diğer</option></select></label>
         <label>Mesajınız<textarea name="message" rows="5" required></textarea></label>
         <label class="check"><input type="checkbox" name="kvkk" required> <span>Kişisel verilerimin işlenmesini onaylıyorum. <a href="/yasal#kvkk" target="_blank">KVKK aydınlatma metni</a></span></label>
         <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-        {$_(mail_on() ? '<button class="btn btn-violet" type="submit">Mesajı gönder</button>' : '<button class="btn btn-wa" type="submit">' . WA_ICON . ' WhatsApp’tan gönder</button><p class="small muted">Gönder’e bastığında WhatsApp açılır ve mesajın hazır yazılmış olur; göndermen yeterli.</p>')}
+        {$_(mail_on() || form_wa_on() ? '<button class="btn btn-violet" type="submit">Mesajı gönder</button>' . (!mail_on() ? '<p class="small muted">Mesajınız ekibimize iletilir; size WhatsApp ya da telefonla dönüş yapılır.</p>' : '') : '<button class="btn btn-wa" type="submit">' . WA_ICON . ' WhatsApp’tan gönder</button><p class="small muted">Gönder’e bastığında WhatsApp açılır ve mesajın hazır yazılmış olur; göndermen yeterli.</p>')}
       </form>
 HTML;
   $body = <<<HTML

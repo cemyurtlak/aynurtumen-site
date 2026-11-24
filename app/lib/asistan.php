@@ -96,7 +96,7 @@ KURALLAR
 
 ÇIKTI
 Yalnızca şu biçimde tek bir JSON nesnesi döndür, başka hiçbir şey yazma:
-{"cevap": "kişiye gidecek mesaj", "devret": false, "neden": "", "dil": "tr", "ozet": "ekip için kısa not"}
+{"cevap": "kişiye gidecek mesaj", "devret": false, "neden": "", "dil": "tr", "ozet": "ekip için kısa not", "ad": "", "telefon": ""}
 "ozet": Konuşmanın tamamından, yalnızca kişinin kendi söylediklerine dayanan 1-3 cümlelik not: ilgilendiği çalışma, tercihleri (online/yüz yüze, gün/saat, dil), sorduğu ve takıldığı noktalar, verdiği iletişim bilgisi. Kişilik, ruh hâli ya da psikolojik yorum ekleme; kişinin anlattığı özel/aile konusunu ayrıntılandırma ("kişisel bir konu paylaştı" demen yeterli).
 "devret" true ise "neden" şunlardan biri olsun: kayıt, dekont, kişisel, acil, bilinmiyor, güncelleme, diğer.
 
@@ -148,8 +148,94 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     $label = ['kayit' => 'Kayıt isteği', 'kayıt' => 'Kayıt isteği', 'dekont' => 'Dekont geldi', 'kisisel' => 'Kişisel konu', 'kişisel' => 'Kişisel konu',
       'acil' => '⚠️ ACİL', 'bilinmiyor' => 'Cevabı bilinmeyen soru', 'butce' => 'Asistan bütçesi doldu', 'medya' => 'Dosya/ses geldi', 'güncelleme' => 'Kişi tercihini değiştirdi', 'guncelleme' => 'Kişi tercihini değiştirdi'][$why] ?? 'İnsan cevabı gerekiyor';
     self::log("DEVIR {$c['phone']} $why");
-    if ($to === '') return;
-    WhatsApp::sendText($to, "🔔 $label\n" . ($c['name'] ?: 'İsimsiz') . ' · +' . $c['phone'] . "\nSon mesaj: " . mb_substr($last, 0, 300) . ($ozet !== '' ? "\n📝 Özet: " . mb_substr($ozet, 0, 500) : '') . "\n👉 wa.me/" . $c['phone'] . "\n\nAsistan genel soruları cevaplamaya devam eder. Siz bu kişiye WhatsApp Business uygulamasından yazdığınızda " . self::INSAN_SAAT . ' saat araya girmez.');
+    self::team("🔔 $label (WhatsApp)", ($c['name'] ?: 'İsimsiz') . ' · +' . $c['phone'],
+      'Son mesaj: ' . mb_substr($last, 0, 300) . ($ozet !== '' ? "\n📝 Özet: " . mb_substr($ozet, 0, 500) : '') . "\n👉 wa.me/" . $c['phone'],
+      'Asistan genel soruları cevaplamaya devam eder. Siz bu kişiye WhatsApp Business uygulamasından yazdığınızda ' . self::INSAN_SAAT . ' saat araya girmez.');
+  }
+
+  // Ekibe WhatsApp bildirimi: önce düz mesaj (ücretsiz, 24 saatlik pencere içindeyse gider);
+  // olmazsa onaylı şablon (WA_SABLON_BILDIRIM ayarlıysa). Şablon gövdesi: {{1}} başlık, {{2}} kişi, {{3}} ayrıntı.
+  static function team(string $title, string $person, string $detail, string $footer = ''): bool {
+    $to = preg_replace('/\D/', '', env('ASISTAN_BILDIRIM_NUMARASI'));
+    if ($to === '' || !WhatsApp::on()) return false;
+    $r = WhatsApp::sendText($to, "$title\n$person\n$detail" . ($footer !== '' ? "\n\n$footer" : ''));
+    if ($r['ok']) return true;
+    $tpl = env('WA_SABLON_BILDIRIM');
+    if ($tpl !== '') {
+      $r2 = WhatsApp::sendTemplate($to, $tpl, [$title, $person, $detail]);
+      if ($r2['ok']) return true;
+      self::log('SABLON GONDERILEMEDI ' . $r2['error']);
+    }
+    self::log('EKIP BILDIRIMI GONDERILEMEDI ' . $r['error']);
+    return false;
+  }
+
+  /* ---------- web sitesi sohbet penceresi ---------- */
+  private static function webFile(string $sid): string { return self::dir() . '/w_' . $sid . '.json'; }
+  static function web(string $sid, string $text, string $lang, string $ip, string $page): array {
+    if (!preg_match('/^[a-f0-9]{16,40}$/', $sid)) return ['ok' => false, 'cevap' => ''];
+    $f = self::webFile($sid);
+    $c = is_file($f) ? (json_decode((string)file_get_contents($f), true) ?: []) : [];
+    $c += ['sid' => $sid, 'msgs' => [], 'lang' => $lang, 'created' => time(), 'ipHash' => substr(hash('sha256', $ip . 'aynur'), 0, 16), 'notified' => '', 'ad' => '', 'telefon' => '', 'ozet' => ''];
+    $now = time();
+    $text = trim(mb_substr($text, 0, self::MESAJ_UZUNLUK));
+    if ($text === '') return ['ok' => false, 'cevap' => ''];
+    $c['msgs'][] = ['r' => 'u', 't' => $text, 'ts' => $now, 'p' => mb_substr($page, 0, 80)];
+    $fallback = ['tr' => 'Şu an yanıt veremiyorum 🌸 Dilerseniz WhatsApp’tan yazın, ekibimiz size dönsün.', 'en' => 'I can’t reply right now 🌸 Please write to us on WhatsApp and our team will get back to you.',
+      'ru' => 'Сейчас я не могу ответить 🌸 Напишите нам в WhatsApp, и наша команда свяжется с вами.', 'de' => 'Ich kann gerade nicht antworten 🌸 Schreiben Sie uns gern per WhatsApp, unser Team meldet sich.'][$lang] ?? '';
+    // sınırlar: oturum başına günlük, IP başına günlük, seri mesaj, aylık bütçe
+    $ipCount = 0;
+    foreach (glob(self::dir() . '/w_*.json') ?: [] as $wf) {
+      if (filemtime($wf) < $now - 86400) continue;
+      $w = json_decode((string)file_get_contents($wf), true);
+      if (($w['ipHash'] ?? '') === $c['ipHash']) $ipCount += count(array_filter($w['msgs'] ?? [], fn($x) => $x['r'] === 'u' && $x['ts'] > $now - 86400));
+    }
+    $mine = count(array_filter($c['msgs'], fn($x) => $x['r'] === 'u' && $x['ts'] > $now - 86400));
+    $burst = count(array_filter($c['msgs'], fn($x) => $x['r'] === 'u' && $x['ts'] > $now - 120));
+    if ($mine > self::GUNLUK_KISI_SINIRI || $ipCount > 60 || $burst > self::DAKIKA_SINIRI || self::overBudget() || env('ASISTAN_KAPALI') === '1') {
+      self::saveWeb($c); return ['ok' => true, 'cevap' => $fallback, 'wa' => true];
+    }
+    $site = rtrim(env('SITE_URL') ?: 'https://www.aynurtumen.com.tr', '/');
+    $durum = "KANAL: Web sitesindeki sohbet penceresi (sayfa: $page, site dili: $lang). Kişi henüz bizimle WhatsApp'ta değil. "
+      . 'Kişi kayıt, randevu, görüşme ya da kendisine dönülmesini isterse adını ve telefon (WhatsApp) numarasını nazikçe iste; ikisini aldığında devret (neden: kayıt ya da diğer) ve ekibin kısa süre içinde WhatsApp’tan döneceğini söyle. '
+      . 'Kişi isterse doğrudan WhatsApp’tan da yazabilir: https://wa.me/' . settings()['phoneIntl'] . ' . İletişim bilgisi vermek istemezse ısrar etme. '
+      . 'Telefon numarası ve adı JSON\'da "ad" ve "telefon" alanlarına yaz (verilmediyse boş bırak). Bilgilendirme sayfası bağlantısında site dilini kullan.'
+      . ($c['notified'] ? ' Bu kişinin bilgileri ekibe zaten iletildi; tekrar isteme.' : '');
+    try {
+      $hist = [];
+      foreach (array_slice($c['msgs'], -20) as $m) {
+        $role = $m['r'] === 'u' ? 'user' : 'assistant';
+        if ($hist && end($hist)['role'] === $role) { $hist[count($hist) - 1]['content'] .= "\n" . $m['t']; continue; }
+        if (!$hist && $role === 'assistant') continue;
+        $hist[] = ['role' => $role, 'content' => $m['t']];
+      }
+      $o = self::claude($hist, $durum);
+    } catch (Throwable $e) {
+      self::log('WEB HATA ' . $e->getMessage());
+      self::saveWeb($c); return ['ok' => true, 'cevap' => $fallback, 'wa' => true];
+    }
+    $reply = trim((string)($o['cevap'] ?? ''));
+    $c['msgs'][] = ['r' => 'a', 't' => $reply, 'ts' => time()];
+    foreach (['ad', 'telefon'] as $k) if (!empty($o[$k])) $c[$k] = mb_substr(trim((string)$o[$k]), 0, 80);
+    if (!empty($o['ozet'])) $c['ozet'] = mb_substr(trim((string)$o['ozet']), 0, 600);
+    $why = !empty($o['devret']) ? (string)($o['neden'] ?: 'diğer') : '';
+    $key = $why . '|' . $c['telefon'];
+    if ($why !== '' && ($key !== $c['notified'] || $why === 'acil')) {
+      $tel = preg_replace('/\D/', '', $c['telefon']);
+      if (strlen($tel) === 10 && $tel[0] === '5') $tel = '90' . $tel; elseif (strlen($tel) === 11 && $tel[0] === '0') $tel = '9' . $tel;
+      $label = ['kayit' => 'Kayıt isteği', 'kayıt' => 'Kayıt isteği', 'kisisel' => 'Kişisel konu', 'kişisel' => 'Kişisel konu', 'acil' => '⚠️ ACİL', 'güncelleme' => 'Tercih değişti'][$why] ?? 'Dönüş bekliyor';
+      self::team("🔔 $label (web sohbeti)", ($c['ad'] ?: 'İsim vermedi') . ' · ' . ($c['telefon'] ?: 'telefon vermedi'),
+        ($c['ozet'] !== '' ? '📝 Özet: ' . $c['ozet'] : 'Son mesaj: ' . mb_substr($text, 0, 300)) . ($tel !== '' ? "\n👉 wa.me/$tel" : ''));
+      $c['notified'] = $key;
+      self::log("WEB DEVIR $sid $why");
+    }
+    self::saveWeb($c);
+    return ['ok' => true, 'cevap' => $reply];
+  }
+  private static function saveWeb(array $c): void {
+    $c['msgs'] = array_slice($c['msgs'], -60);
+    $f = self::webFile($c['sid']);
+    file_put_contents("$f.tmp", json_encode($c, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX); rename("$f.tmp", $f);
   }
 
   /* ---------- gelen mesaj ---------- */
@@ -258,6 +344,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
   }
   static function periodic(): void {
     $now = time();
+    foreach (glob(self::dir() . '/w_*.json') ?: [] as $file) if (filemtime($file) < $now - self::SAKLA_GUN * 86400) @unlink($file);
     foreach (glob(self::dir() . '/k_*.json') ?: [] as $file) {
       $c = json_decode((string)file_get_contents($file), true); if (!$c) continue;
       $lastAny = $c['msgs'] ? (int)(end($c['msgs'])['ts'] ?? 0) : (int)($c['lastUser'] ?? 0);
