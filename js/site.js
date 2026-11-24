@@ -97,7 +97,7 @@
       const q = ps.value.trim(), my = ++seq;
       const u = new URL(location.href); if (q) u.searchParams.set('q', q); else u.searchParams.delete('q'); history.replaceState(null, '', u);
       if (!q) { hits = null; apply(); return; }
-      fetch('/api/yazi-ara?q=' + encodeURIComponent(q)).then(r => r.json()).then(d => { if (my !== seq) return; hits = new Set(d.slugs || []); apply(); }).catch(() => {});
+      fetch('/api/yazi-ara?lang=' + (document.documentElement.lang || 'tr') + '&q=' + encodeURIComponent(q)).then(r => r.json()).then(d => { if (my !== seq) return; hits = new Set(d.slugs || []); apply(); }).catch(() => {});
     };
     ps.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 250); });
     ps.closest('form').addEventListener('submit', e => { e.preventDefault(); clearTimeout(timer); run(); ps.blur(); });

@@ -29,3 +29,8 @@ IG_ACCESS_TOKEN=
 
 # Online görüşme odası (Jitsi; hesap gerekmez)
 JITSI_DOMAIN=meet.jit.si
+
+# Yazıların EN/RU/DE çevirisi (Google Gemini, ücretsiz anahtarlar). Virgülle ayırarak birden çok anahtar yazılabilir.
+# Anahtar: https://aistudio.google.com/apikey  — çeviri ziyaretçi geldikçe arka planda kendiliğinden ilerler.
+GEMINI_KEYS=
+# GEMINI_MODELS=gemini-3.6-flash, gemini-3.5-flash-lite, gemini-3.8-flash

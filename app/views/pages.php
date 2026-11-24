@@ -61,13 +61,18 @@ function upcomingEvents(): array { return Events::upcoming(); }
 
 function postCard(array $p, int $i = 0): string {
   $_ = fn($x) => $x;
+  // Bu dilde çevirisi varsa çevrilmiş başlık/özet; yoksa Türkçe asıl
+  $t = YaziCeviri::get($p, I18n::lang());
+  $lang = $t ? I18n::lang() : 'tr';
+  $cat = $t ? esc($p['category'] ?? '') : OFF . esc($p['category'] ?? '') . ON;
+  $title = esc($t['title'] ?? $p['title']); $ex = esc($t['excerpt'] ?? ($p['excerpt'] ?? ''));
   return <<<HTML
 
   <article class="post reveal" style="--d:{$_($i * 60)}ms">
-    <a href="/yazilar/{$_(esc($p['slug']))}" lang="tr">
-      {$_(OFF)}<span class="post-cat">{$_(esc($p['category'] ?? ''))}</span>
-      <h3>{$_(esc($p['title']))}</h3>
-      <p>{$_(esc($p['excerpt'] ?? ''))}</p>{$_(ON)}
+    <a href="/yazilar/{$_(esc($p['slug']))}" lang="$lang">
+      <span class="post-cat">$cat</span>
+      {$_(OFF)}<h3>$title</h3>
+      <p>$ex</p>{$_(ON)}
       <span class="more">Yazıyı oku</span>
     </a>
   </article>
@@ -495,7 +500,7 @@ function page_yazilar(array $posts): string {
   $note = I18n::lang() !== 'tr' ? '<p class="lang-note reveal">Yazılar Türkçe olarak yayımlanmaktadır.</p>' : '';
   $catBtns = join_map($cats, fn($c) => '<button data-filter="' . esc($c) . '" aria-pressed="false">' . esc($c) . '</button>');
   $q = trim((string)($_GET['q'] ?? ''));
-  $found = $q !== '' ? array_flip(search_posts($posts, $q)) : null;
+  $found = $q !== '' ? array_flip(search_posts($posts, $q, I18n::lang())) : null;
   $total = count($posts); $shown = $found === null ? $total : count($found);
   $grid = join_map($posts, fn($p, $i) => preg_replace('/<article class="post/', '<article data-slug="' . esc($p['slug']) . '" data-type="' . str_replace(['\\', '$'], ['\\\\', '\\$'], esc($p['category'] ?? '')) . '"' . ($found !== null && !isset($found[$p['slug']]) ? ' hidden' : '') . ' class="post', postCard($p, $i % 3), 1));
   $body = <<<HTML
@@ -530,15 +535,18 @@ function page_yazi(array $post, array $posts): string {
   $_ = fn($x) => $x;
   $related = array_slice(array_values(array_filter($posts, fn($p) => $p['slug'] !== $post['slug'] && ($p['category'] ?? '') === ($post['category'] ?? ''))), 0, 3);
   $date = !empty($post['date']) ? ' · ' . OFF . esc(postDate($post['date'])) . ON : '';
-  $note = I18n::lang() !== 'tr' ? '<p class="lang-note">Bu yazı Türkçedir.</p>' : '';
+  $t = YaziCeviri::get($post, I18n::lang());
+  $lang = $t ? I18n::lang() : 'tr';
+  $title = $t['title'] ?? $post['title']; $html = $t['html'] ?? $post['html'];
+  $note = I18n::lang() !== 'tr' && !$t ? '<p class="lang-note">Bu yazı Türkçedir.</p>' : '';
   $rel = $related ? '<section class="tint"><div class="wrap"><h2>İlgili yazılar</h2><div class="post-grid">' . join_map($related, fn($p, $i) => postCard($p, $i)) . '</div></div></section>' : '';
   $body = <<<HTML
 
-  {$_(pageHead(OFF . esc($post['title']) . ON, '', '<a href="/yazilar">Yazılar</a><span>/</span>' . OFF . esc($post['category'] ?? '') . ON))}
+  {$_(pageHead(OFF . esc($title) . ON, '', '<a href="/yazilar">Yazılar</a><span>/</span>' . ($t ? esc($post['category'] ?? '') : OFF . esc($post['category'] ?? '') . ON)))}
   <article class="article"><div class="wrap narrow">
     <p class="byline">Aynur Tümen$date</p>
     $note
-    <div class="prose" lang="tr">{$_(OFF)}{$post['html']}{$_(ON)}</div>
+    <div class="prose" lang="$lang">{$_(OFF)}$html{$_(ON)}</div>
     <aside class="article-cta">
       <h3>Bu konu sana tanıdık geldiyse</h3>
       <p>Kendi ailende bunun nereden geldiğine birlikte bakabiliriz.</p>
@@ -547,8 +555,8 @@ function page_yazi(array $post, array $posts): string {
   </div></article>
   $rel
 HTML;
-  return layout(['title' => $post['title'], 'path' => '/yazilar/' . $post['slug'], 'body' => $body, 'trOnly' => true, 'description' => $post['excerpt'] ?? null,
-    'head' => '<script type="application/ld+json">' . js_json(['@context' => 'https://schema.org', '@type' => 'Article', 'headline' => $post['title'], 'author' => ['@type' => 'Person', 'name' => 'Aynur Tümen'], 'inLanguage' => 'tr']) . '</script>']);
+  return layout(['title' => $title, 'path' => '/yazilar/' . $post['slug'], 'body' => $body, 'langs' => YaziCeviri::langsFor($post), 'description' => $t['excerpt'] ?? ($post['excerpt'] ?? null),
+    'head' => '<script type="application/ld+json">' . js_json(['@context' => 'https://schema.org', '@type' => 'Article', 'headline' => $title, 'author' => ['@type' => 'Person', 'name' => 'Aynur Tümen'], 'inLanguage' => $lang]) . '</script>']);
 }
 
 /* ---------- Hakkında ---------- */

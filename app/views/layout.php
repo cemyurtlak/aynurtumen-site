@@ -29,10 +29,10 @@ function layout(array $o): string {
   $fullTitle = $title ? t($title) . ' | Aynur Tümen' : 'Aynur Tümen | ' . t('Aile Dizimi ve Konstelasyon Çalışmaları');
   $desc = t($description ?: 'Aynur Tümen ile bireysel ve grup aile dizimi (konstelasyon) çalışmaları, online randevu, etkinlikler ve kamplar.');
   $self = $o['canonical'] ?? $path;
-  // trOnly: içerik yalnız Türkçe (yazılar) → diğer dillerdeki kopyası arama motorunda dizine girmez, asıl adres Türkçe sayfa
-  $trOnly = !empty($o['trOnly']);
-  $alt = $trOnly ? '' : join_map(I18n::LANGS, fn($l) => '<link rel="alternate" hreflang="' . $l . '" href="@@' . esc($site . I18n::prefix($self, $l)) . '">') . '<link rel="alternate" hreflang="x-default" href="@@' . esc($site . $self) . '">';
-  $robots = !empty($o['noindex']) || ($trOnly && $L !== 'tr') ? '<meta name="robots" content="noindex, follow">' : '';
+  // langs: içeriğin bulunduğu diller (yazılar: Türkçe + çevrilmiş olanlar). Olmayan dildeki kopyası dizine girmez.
+  $langs = $o['langs'] ?? (!empty($o['trOnly']) ? ['tr'] : I18n::LANGS);
+  $alt = count($langs) < 2 ? '' : join_map($langs, fn($l) => '<link rel="alternate" hreflang="' . $l . '" href="@@' . esc($site . I18n::prefix($self, $l)) . '">') . '<link rel="alternate" hreflang="x-default" href="@@' . esc($site . $self) . '">';
+  $robots = !empty($o['noindex']) || !in_array($L, $langs, true) ? '<meta name="robots" content="noindex, follow">' : '';
   $langMenu = '<div class="lang" data-lang><button class="lang-btn" type="button" aria-expanded="false" aria-label="Dil / Language">' . GLOBE . '<span>' . strtoupper($L) . '</span></button><div class="lang-menu">'
     . join_map(I18n::LANGS, fn($l) => '<a href="@@' . esc(I18n::prefix($self, $l)) . '" hreflang="' . $l . '" lang="' . $l . '"' . ($l === $L ? ' aria-current="true"' : '') . '><b>' . strtoupper($l) . '</b>' . I18n::NAMES[$l] . '</a>') . '</div></div>';
   $social = $s['social'] ?? [];

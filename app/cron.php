@@ -7,4 +7,5 @@ require __DIR__ . '/bootstrap.php';
 Calendar::refresh();
 Translate::syncNow();
 Translate::flush();
+print_r(YaziCeviri::run(40)['progress'] ?? []);
 echo "tamam\n";

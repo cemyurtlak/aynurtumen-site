@@ -34,12 +34,13 @@ function body(): array {
 function posts(): array { return Store::read('posts', ['posts' => []])['posts'] ?? []; }
 // Yazılarda arama: başlık, kategori, özet ve yazının tamamında; Türkçe harfsiz yazılanı da bulur (baba = Baba, iliski = ilişki)
 function fold_tr(string $s): string { return strtr(tr_lower($s), ['ç' => 'c', 'ğ' => 'g', 'ı' => 'i', 'ö' => 'o', 'ş' => 's', 'ü' => 'u', 'â' => 'a', 'î' => 'i', 'û' => 'u']); }
-function search_posts(array $posts, string $q): array {
+function search_posts(array $posts, string $q, string $lang = 'tr'): array {
   $words = array_values(array_filter(preg_split('/\s+/u', fold_tr(trim(mb_substr($q, 0, 80)))), fn($w) => $w !== ''));
   if (!$words) return array_column($posts, 'slug');
   $out = [];
   foreach ($posts as $p) {
     $hay = fold_tr(($p['title'] ?? '') . ' ' . ($p['category'] ?? '') . ' ' . ($p['excerpt'] ?? '') . ' ' . html_entity_decode(strip_tags($p['html'] ?? ''), ENT_QUOTES, 'UTF-8'));
+    if ($lang !== 'tr' && ($t = YaziCeviri::get($p, $lang))) $hay .= ' ' . fold_tr($t['title'] . ' ' . $t['excerpt'] . ' ' . html_entity_decode(strip_tags($t['html']), ENT_QUOTES, 'UTF-8'));
     foreach ($words as $w) if (!str_contains($hay, $w)) continue 2;
     $out[] = $p['slug'];
   }
@@ -49,6 +50,7 @@ function search_posts(array $posts, string $q): array {
 // Arka plan işleri: takvim ve çeviri süresi dolduysa yanıttan sonra yenilenir
 Calendar::tick();
 Translate::tick();
+YaziCeviri::tick();
 
 // Yönetim paneli oturumu
 function admin_ok(): bool {
@@ -106,7 +108,14 @@ switch (true) {
 
   /* ---------- Randevu ---------- */
   case $route === 'GET /randevu': html(page_randevu($_GET)); break;
-  case $route === 'GET /api/yazi-ara': json_out(['slugs' => search_posts(posts(), (string)($_GET['q'] ?? ''))]); break;
+  case $route === 'GET /api/yazi-ara': json_out(['slugs' => search_posts(posts(), (string)($_GET['q'] ?? ''), (string)($_GET['lang'] ?? 'tr'))]); break;
+  // Yazı çevirisi (Gemini): GitHub'daki zamanlanmış iş çağırır; güncelleme anahtarıyla korunur
+  case $route === 'GET /api/yazi-cevir':
+    $oz = is_file(APP_DIR . '/guncelle_anahtar.php') ? (string)(include APP_DIR . '/guncelle_anahtar.php') : '';
+    $k = (string)($_GET['k'] ?? '');
+    if ($oz === '' || $k === '' || !hash_equals($oz, hash('sha256', $k))) { html(page_notFound(), 404); break; }
+    @set_time_limit(90); ignore_user_abort(true); header('X-Robots-Tag: noindex');
+    json_out(YaziCeviri::run(max(15, min(45, (int)($_GET['sure'] ?? 40))))); break;
   case $route === 'GET /api/slots': json_out(['slots' => Booking::slotsFor((string)($_GET['date'] ?? ''), (string)($_GET['service'] ?? ''))]); break;
   case $route === 'GET /api/days':
     // Önümüzdeki günlerden hangilerinde boş saat olduğunu döndürür
@@ -247,8 +256,12 @@ switch (true) {
     $alt = fn($u) => join_map(I18n::LANGS, fn($l) => '<xhtml:link rel="alternate" hreflang="' . $l . '" href="' . $base . I18n::prefix($u, $l) . '"/>');
     $x = '';
     foreach ($urls as $u) foreach (I18n::LANGS as $l) $x .= '<url><loc>' . $base . I18n::prefix($u, $l) . '</loc>' . $alt($u) . '</url>';
-    // Yazılar yalnız Türkçe: haritada tek (Türkçe) adresle
-    foreach (posts() as $p) $x .= '<url><loc>' . $base . '/yazilar/' . esc($p['slug']) . '</loc></url>';
+    // Yazılar: Türkçe + çevirisi tamamlanmış diller
+    foreach (posts() as $p) {
+      $u = '/yazilar/' . $p['slug']; $ls = YaziCeviri::langsFor($p);
+      $a = count($ls) > 1 ? join_map($ls, fn($l) => '<xhtml:link rel="alternate" hreflang="' . $l . '" href="' . $base . esc(I18n::prefix($u, $l)) . '"/>') : '';
+      foreach ($ls as $l) $x .= '<url><loc>' . $base . esc(I18n::prefix($u, $l)) . '</loc>' . $a . '</url>';
+    }
     header('Content-Type: application/xml; charset=utf-8');
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">$x</urlset>"; break;
 

@@ -43,5 +43,5 @@ register_shutdown_function(function () {
   foreach ($GLOBALS['__later'] as $fn) { try { $fn(); } catch (Throwable $e) { error_log('[arka plan] ' . $e->getMessage()); } }
 });
 
-foreach (['util', 'store', 'i18n', 'config', 'translate', 'ical', 'calendar', 'events', 'booking', 'youtube', 'instagram', 'mailer'] as $m) require APP_DIR . "/lib/$m.php";
+foreach (['util', 'store', 'i18n', 'config', 'translate', 'ical', 'calendar', 'events', 'booking', 'youtube', 'instagram', 'mailer', 'yaziceviri'] as $m) require APP_DIR . "/lib/$m.php";
 foreach (['helpers', 'layout', 'pages', 'admin'] as $m) require APP_DIR . "/views/$m.php";
