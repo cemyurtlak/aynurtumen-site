@@ -105,6 +105,7 @@ switch (true) {
     if (env('ADMIN_EMAIL')) later(fn() => Mailer::send(env('ADMIN_EMAIL'), 'Siteden yeni mesaj: ' . $msg['name'], '<p><b>' . esc($msg['name']) . '</b> · ' . esc($msg['email']) . ' · ' . esc($msg['phone']) . ' · ' . esc($msg['topic']) . '</p><p>' . nl2br(esc($msg['message'])) . '</p>'));
     html(page_iletisim(true)); break;
   case $route === 'GET /yasal': html(page_yasal()); break;
+  case $route === 'GET /bilgi': header('X-Robots-Tag: noindex'); html(page_bilgi()); break;
 
   /* ---------- Randevu ---------- */
   case $route === 'GET /randevu': html(page_randevu($_GET)); break;

@@ -694,6 +694,58 @@ HTML;
   return layout(['title' => 'Yasal Metinler', 'path' => '/yasal', 'body' => $body, 'noindex' => true]);
 }
 
+/* ---------- Bilgilendirme (yalnız linkle açılır: menüde yok, Google'da yok) ---------- */
+// WhatsApp karşılama mesajındaki link buraya gelir. Ücretler ve kayıt adımları burada; değişince bu fonksiyon güncellenir.
+function feeCard(string $title, string $meta, array $fees, array $notes): string {
+  $f = join_map($fees, fn($x) => '<div class="fee"><span>' . $x[0] . '</span><b>' . $x[1] . '</b></div>');
+  $n = join_map($notes, fn($x) => "<li>$x</li>");
+  return "\n    <article class=\"fee-card reveal\"><div class=\"fee-head\"><h3>$title</h3><div class=\"offer-meta\">$meta</div></div><div class=\"fees\">$f</div><ul>$n</ul></article>";
+}
+function page_bilgi(): string {
+  $_ = fn($x) => $x;
+  $T = fn($x) => OFF . $x . ON; // tutarlar her dilde aynı yazılır
+  $online = feeCard('Bireysel seans', 'Online · WhatsApp görüntülü görüşme', [['Seans ücreti', $T('6.500 TL')]], [
+      'İlk seansta sizi zorlayan dinamikler belirlenir ve bir yol haritası çizilir.',
+      'Dinamiklerin içeriğine göre 1-2 seans daha gerekebilir. Seanslar arasında belli bir süre beklemek gerekmez.',
+      'Belirlenen saatte Aynur Tümen’i WhatsApp’tan görüntülü arayarak seansınızı başlatırsınız.'])
+    . feeCard('Online grup aile dizimi', 'Online · Zoom', [['Açılımcı', $T('6.500 TL')], ['Temsilci / izleyici', $T('3.500 TL')]], [
+      'Gündüz grubu: 10.00-14.00, akşam grubu: 20.00-24.00.',
+      'Açılımcı sayısı sınırlıdır.',
+      'Açılımcı olarak katılanlar bir sonraki çalışmaya temsilci olarak ücretsiz katılabilir.']);
+  $yuz = feeCard('Grup aile dizimi', 'Yüz yüze · İstanbul · 11.00-18.00', [['Açılımcı', $T('15.000 TL')], ['Temsilci / katılımcı', $T('7.500 TL')]], [
+      'Bir tam gün boyunca 8 açılımcıya çalışma yapılır. Açılımcılar seçtikleri konuda kendilerine özel dizim yapar; temsilciler çalışmalarda rol alarak ortak alandan faydalanır.',
+      'Gün içindeki açık büfe yiyecek ve içecek ikramı ücrete dahildir. Ücretler bir günlük katılım içindir.',
+      'Tarihler etkinlikler sayfasında duyurulur. Tam adres kayıttan sonra iletilir.',
+      'Kayıttan sonraki 24 saat içinde ödeme yapılmazsa kayıt talebi iptal olur.'])
+    . feeCard('Bireysel seans', 'Yüz yüze · İstanbul', [['Seans ücreti', $T('15.000 TL')]], [
+      'İlk seansta dinamikler belirlenir ve yol haritası çizilir; gerekirse 1-2 seans daha yapılır.',
+      'Konum bilgisi randevunuz kesinleştikten sonra paylaşılır.']);
+  $body = <<<HTML
+
+  {$_(pageHead('Çalışmalar ve ücretler', 'Online ve yüz yüze çalışmalarımızın ücretleri ve kayıt adımları. Sormak istediğiniz her şeyi WhatsApp’tan yazabilirsiniz.', 'Bilgilendirme'))}
+  <section><div class="wrap">
+    <h2 class="reveal">Online çalışmalar</h2>
+    <div class="fee-grid">$online</div>
+  </div></section>
+  <section class="tint"><div class="wrap">
+    <h2 class="reveal">Yüz yüze çalışmalar</h2>
+    <div class="fee-grid">$yuz</div>
+  </div></section>
+  <section><div class="wrap narrow">
+    <h2 class="reveal">Nasıl kayıt olunur?</h2>
+    <ol class="how reveal">
+      <li><b>WhatsApp’tan yazın.</b> Hangi çalışmaya katılmak istediğinizi belirtin.</li>
+      <li><b>Ödeme bilgisini alın.</b> IBAN bilgisi size WhatsApp’tan iletilir.</li>
+      <li><b>Dekontu gönderin.</b> Ödeme dekontunu aynı WhatsApp hattına gönderdiğinizde kaydınız kesinleşir.</li>
+      <li><b>Gün ve saat belirlenir.</b> Seansınız ya da çalışmanız için gün ve saat birlikte belirlenir.</li>
+    </ol>
+    <div class="btn-row reveal"><a class="btn btn-wa" href="{$_(wa('Merhaba, bilgilendirme sayfasını okudum. Kayıt olmak istiyorum.'))}" target="_blank" rel="noopener">{$_(WA_ICON)} WhatsApp’tan yazın</a><a class="btn btn-line" href="/etkinlikler">Yaklaşan etkinlikler</a></div>
+    <p class="more-links reveal">Aynur Tümen’i ve aile dizimini daha yakından tanımak için: <a href="/aile-dizimi">Aile dizimi nedir?</a> · <a href="/hakkinda">Hakkında</a> · <a href="/yazilar">Yazılar</a> · <a href="/videolar">Videolar</a></p>
+  </div></section>
+HTML;
+  return layout(['title' => 'Çalışmalar ve ücretler', 'path' => '/bilgi', 'body' => $body, 'noindex' => true]);
+}
+
 /* ---------- Randevu ---------- */
 function page_randevu(array $query): string {
   $_ = fn($x) => $x;
