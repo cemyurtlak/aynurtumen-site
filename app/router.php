@@ -51,6 +51,7 @@ function search_posts(array $posts, string $q, string $lang = 'tr'): array {
 Calendar::tick();
 Translate::tick();
 YaziCeviri::tick();
+Asistan::tick();
 
 // Yönetim paneli oturumu
 function admin_ok(): bool {
@@ -111,6 +112,19 @@ switch (true) {
   case $route === 'GET /randevu': html(page_randevu($_GET)); break;
   case $route === 'GET /api/yazi-ara': json_out(['slugs' => search_posts(posts(), (string)($_GET['q'] ?? ''), (string)($_GET['lang'] ?? 'tr'))]); break;
   // Yazı çevirisi (Gemini): GitHub'daki zamanlanmış iş çağırır; güncelleme anahtarıyla korunur
+  /* ---------- WhatsApp asistanı (Meta Cloud API webhook) ---------- */
+  case $route === 'GET /api/whatsapp':
+    $ch = WhatsApp::verify($_GET);
+    if ($ch === null) { http_response_code(403); echo 'forbidden'; break; }
+    header('Content-Type: text/plain'); echo $ch; break;
+  case $route === 'POST /api/whatsapp':
+    $raw = (string)file_get_contents('php://input');
+    if (!WhatsApp::signatureOk($raw)) { http_response_code(403); echo 'bad signature'; break; }
+    $msgs = WhatsApp::parse(json_decode($raw, true) ?: []);
+    // Meta'ya hemen 200 dönülür, cevap arka planda hazırlanır (Meta 20 sn içinde yanıt bekler)
+    json_out(['ok' => true]);
+    if ($msgs) later(function () use ($msgs) { @set_time_limit(120); foreach ($msgs as $mm) Asistan::handle($mm); });
+    break;
   case $route === 'GET /api/yazi-cevir':
     $oz = is_file(APP_DIR . '/guncelle_anahtar.php') ? (string)(include APP_DIR . '/guncelle_anahtar.php') : '';
     $k = (string)($_GET['k'] ?? '');

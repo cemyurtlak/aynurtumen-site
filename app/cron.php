@@ -8,4 +8,5 @@ Calendar::refresh();
 Translate::syncNow();
 Translate::flush();
 print_r(YaziCeviri::run(40)['progress'] ?? []);
+Asistan::tick(true);
 echo "tamam\n";

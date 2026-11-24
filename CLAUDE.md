@@ -31,3 +31,11 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 - Anahtarlar yalnız sunucudaki `app/ayarlar.env` → `GEMINI_KEYS=a,b,c` (Cem kendisi yazar, Dağıt'a basar). Asla git'e/sohbete yazılmaz.
 - Çeviri ziyaretçi geldikçe arka planda ilerler (`YaziCeviri::tick`, 2 dk'da bir ~35 sn); elle hızlandırmak için `/api/yazi-cevir?k=<GÜNCELLEME_ANAHTARI>` (veya cron.php). Biten yazı tam çevrilmiş görünür; eksik dilde Türkçe + "Bu yazı Türkçedir" notu ve noindex ile görünür.
 - Türkçe yazı değişirse özeti değişir ve o yazı kendiliğinden yeniden çevrilir. Çeviri bitince sitemap/hreflang o dili ekler.
+
+## WhatsApp asistanı
+- `app/lib/whatsapp.php` (Meta Cloud API) + `app/lib/asistan.php` (Claude Haiku 5.5). Webhook: `GET/POST /api/whatsapp`. Bilgisayar/ngrok gerekmez.
+- Bilgi kaynağı `bilgi_body()` (/bilgi sayfası) + örnek olmayan etkinlikler. Ücret değişince yalnız /bilgi güncellenir.
+- Kayıt, dekont, kişisel konu, acil, bilinmeyen → insana devir: asistan 12 saat susar, ASISTAN_BILDIRIM_NUMARASI'na bildirim gider.
+- Ertesi gün takip mesajı 20–23,5. saatte (24 saatlik ücretsiz pencere içinde). Konuşmalar `app/data/whatsapp/` içinde, 90 günde silinir; harcama `_kullanim.json`, olaylar `_gunluk.log`.
+- Aylık tavan ASISTAN_AYLIK_TAVAN_USD (varsayılan 5$); Console tarafında da aylık 10$ sınır ve otomatik yükleme kapalı.
+- Test: okulun k12 Meta uygulaması + test numarası. Canlıda Aynur Hanım'ın kendi Meta Business hesabı ve numarası (coexistence) bağlanacak.

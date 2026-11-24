@@ -701,7 +701,7 @@ function feeCard(string $title, string $meta, array $fees, array $notes): string
   $n = join_map($notes, fn($x) => "<li>$x</li>");
   return "\n    <article class=\"fee-card reveal\"><div class=\"fee-head\"><h3>$title</h3><div class=\"offer-meta\">$meta</div></div><div class=\"fees\">$f</div><ul>$n</ul></article>";
 }
-function page_bilgi(): string {
+function bilgi_body(): string {
   $_ = fn($x) => $x;
   $T = fn($x) => OFF . $x . ON; // tutarlar her dilde aynı yazılır
   $online = feeCard('Bireysel seans', 'Online · WhatsApp görüntülü görüşme', [['Seans süresi', '1 saat'], ['Seans ücreti', $T('6.500 TL')]], [
@@ -746,6 +746,10 @@ function page_bilgi(): string {
     <p class="more-links reveal">Aynur Tümen’i ve aile dizimini daha yakından tanımak için: <a href="/aile-dizimi">Aile dizimi nedir?</a> · <a href="/hakkinda">Hakkında</a> · <a href="/yazilar">Yazılar</a> · <a href="/videolar">Videolar</a></p>
   </div></section>
 HTML;
+  return $body;
+}
+function page_bilgi(): string {
+  $body = bilgi_body();
   return layout(['title' => 'Çalışmalar ve ücretler', 'path' => '/bilgi', 'body' => $body, 'noindex' => true]);
 }
 

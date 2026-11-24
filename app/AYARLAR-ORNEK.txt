@@ -34,3 +34,15 @@ JITSI_DOMAIN=meet.jit.si
 # Anahtar: https://aistudio.google.com/apikey  — çeviri ziyaretçi geldikçe arka planda kendiliğinden ilerler.
 GEMINI_KEYS=
 # GEMINI_MODELS=gemini-3.6-flash, gemini-3.5-flash-lite, gemini-3.8-flash
+
+# WhatsApp asistanı (Meta WhatsApp Cloud API + Claude). Webhook adresi: https://www.aynurtumen.com.tr/api/whatsapp
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_VERIFY_TOKEN=
+WHATSAPP_APP_SECRET=
+WHATSAPP_API_VERSION=v21.0
+ANTHROPIC_API_KEY=
+ASISTAN_AYLIK_TAVAN_USD=5
+ASISTAN_BILDIRIM_NUMARASI=
+# ASISTAN_TAKIP=0   ertesi gün takip mesajını kapatır
+# ASISTAN_KAPALI=1  asistanı tamamen susturur (mesajlar yine kaydedilir)
