@@ -123,7 +123,7 @@ switch (true) {
     $msgs = WhatsApp::parse(json_decode($raw, true) ?: []);
     // Meta'ya hemen 200 dönülür, cevap arka planda hazırlanır (Meta 20 sn içinde yanıt bekler)
     json_out(['ok' => true]);
-    if ($msgs) later(function () use ($msgs) { @set_time_limit(120); foreach ($msgs as $mm) Asistan::handle($mm); });
+    if ($msgs) later(function () use ($msgs) { @set_time_limit(120); foreach ($msgs as $mm) !empty($mm['echo']) ? Asistan::humanReply($mm['to'], $mm['text']) : Asistan::handle($mm); });
     break;
   case $route === 'GET /api/yazi-cevir':
     $oz = is_file(APP_DIR . '/guncelle_anahtar.php') ? (string)(include APP_DIR . '/guncelle_anahtar.php') : '';

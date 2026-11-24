@@ -35,7 +35,7 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 ## WhatsApp asistanı
 - `app/lib/whatsapp.php` (Meta Cloud API) + `app/lib/asistan.php` (Claude Haiku 5.5). Webhook: `GET/POST /api/whatsapp`. Bilgisayar/ngrok gerekmez.
 - Bilgi kaynağı `bilgi_body()` (/bilgi sayfası) + örnek olmayan etkinlikler. Ücret değişince yalnız /bilgi güncellenir.
-- Kayıt, dekont, kişisel konu, acil, bilinmeyen → insana devir: asistan 12 saat susar, ASISTAN_BILDIRIM_NUMARASI'na bildirim gider.
+- Kayıt, dekont, kişisel konu, acil, bilinmeyen → ASISTAN_BILDIRIM_NUMARASI'na bildirim (aynı nedenle 6 saatte bir). Asistan susmaz, ekip dönecek der; ekip Business uygulamasından yazınca (smb_message_echoes) 2 saat araya girmez.
 - Ertesi gün takip mesajı 20–23,5. saatte (24 saatlik ücretsiz pencere içinde). Konuşmalar `app/data/whatsapp/` içinde, 90 günde silinir; harcama `_kullanim.json`, olaylar `_gunluk.log`.
 - Aylık tavan ASISTAN_AYLIK_TAVAN_USD (varsayılan 5$); Console tarafında da aylık 10$ sınır ve otomatik yükleme kapalı.
 - Test: okulun k12 Meta uygulaması + test numarası. Canlıda Aynur Hanım'ın kendi Meta Business hesabı ve numarası (coexistence) bağlanacak.

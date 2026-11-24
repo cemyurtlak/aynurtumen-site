@@ -40,6 +40,10 @@ final class WhatsApp {
         $out[] = ['id' => (string)($m['id'] ?? ''), 'from' => (string)($m['from'] ?? ''), 'name' => $names[(string)($m['from'] ?? '')] ?? '',
           'type' => $type, 'text' => trim($text), 'ts' => (int)($m['timestamp'] ?? time())];
       }
+      // WhatsApp Business uygulamasından (insan) gönderilen mesajların yankısı
+      foreach ($v['message_echoes'] ?? [] as $m) {
+        $out[] = ['echo' => true, 'to' => (string)($m['to'] ?? ''), 'text' => (string)($m['text']['body'] ?? '[' . ($m['type'] ?? '') . ']')];
+      }
     }
     return $out;
   }

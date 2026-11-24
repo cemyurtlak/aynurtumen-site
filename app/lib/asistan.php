@@ -11,14 +11,15 @@
 final class Asistan {
   const SAKLA_GUN = 90;           // konuşmalar 90 gün sonra silinir (KVKK)
   const GUNLUK_KISI_SINIRI = 40;  // bir kişiye günde en çok bu kadar yapay zekâ cevabı
-  const DEVIR_SAAT = 12;          // insana devredilen konuşmada asistan bu kadar saat susar
+  const INSAN_SAAT = 2;           // ekip WhatsApp Business uygulamasından yazınca asistan bu kadar saat araya girmez
+  const BILDIRIM_ARA_SAAT = 6;    // aynı kişi için aynı nedenle en sık bu aralıkla bildirim
 
   static function dir(): string { $d = DATA_DIR . '/whatsapp'; if (!is_dir($d)) @mkdir($d, 0775, true); return $d; }
   private static function file(string $phone): string { return self::dir() . '/k_' . substr(hash('sha256', $phone), 0, 24) . '.json'; }
   static function load(string $phone): array {
     $f = self::file($phone);
     $c = is_file($f) ? (json_decode((string)file_get_contents($f), true) ?: []) : [];
-    return $c + ['phone' => $phone, 'name' => '', 'msgs' => [], 'handoffUntil' => 0, 'lastUser' => 0, 'followed' => false, 'lang' => 'tr', 'created' => time()];
+    return $c + ['phone' => $phone, 'name' => '', 'msgs' => [], 'handoffAt' => 0, 'handoffWhy' => '', 'notifiedAt' => 0, 'humanUntil' => 0, 'lastUser' => 0, 'followed' => false, 'lang' => 'tr', 'created' => time()];
   }
   static function save(array $c): void {
     $c['msgs'] = array_slice($c['msgs'], -60);
@@ -92,18 +93,19 @@ KURALLAR
 ÇIKTI
 Yalnızca şu biçimde tek bir JSON nesnesi döndür, başka hiçbir şey yazma:
 {"cevap": "kişiye gidecek mesaj", "devret": false, "neden": "", "dil": "tr"}
-"devret" true ise "neden" şunlardan biri olsun: kayıt, dekont, kişisel, acil, bilinmiyor, diğer.
+"devret" true ise "neden" şunlardan biri olsun: kayıt, dekont, kişisel, acil, bilinmiyor, güncelleme, diğer.
 
 BİLGİ
 TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
   }
 
   /* ---------- Claude ---------- */
-  static function claude(array $msgs): array {
+  static function claude(array $msgs, string $durum = ''): array {
     $key = env('ANTHROPIC_API_KEY');
     if ($key === '') throw new RuntimeException('ANTHROPIC_API_KEY ayarlı değil');
     $body = ['model' => env('ASISTAN_MODEL') ?: 'claude-haiku-5-5', 'max_tokens' => 700,
-      'system' => [['type' => 'text', 'text' => self::system(), 'cache_control' => ['type' => 'ephemeral']]],
+      'system' => array_merge([['type' => 'text', 'text' => self::system(), 'cache_control' => ['type' => 'ephemeral']]],
+        $durum !== '' ? [['type' => 'text', 'text' => $durum]] : []),
       'messages' => $msgs];
     $ch = curl_init((env('ASISTAN_API_BASE') ?: 'https://api.anthropic.com') . '/v1/messages');
     curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 40,
@@ -138,10 +140,10 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
   static function notify(array $c, string $why, string $last): void {
     $to = preg_replace('/\D/', '', env('ASISTAN_BILDIRIM_NUMARASI'));
     $label = ['kayit' => 'Kayıt isteği', 'kayıt' => 'Kayıt isteği', 'dekont' => 'Dekont geldi', 'kisisel' => 'Kişisel konu', 'kişisel' => 'Kişisel konu',
-      'acil' => '⚠️ ACİL', 'bilinmiyor' => 'Cevabı bilinmeyen soru', 'butce' => 'Asistan bütçesi doldu', 'medya' => 'Dosya/ses geldi'][$why] ?? 'İnsan cevabı gerekiyor';
+      'acil' => '⚠️ ACİL', 'bilinmiyor' => 'Cevabı bilinmeyen soru', 'butce' => 'Asistan bütçesi doldu', 'medya' => 'Dosya/ses geldi', 'güncelleme' => 'Kişi tercihini değiştirdi', 'guncelleme' => 'Kişi tercihini değiştirdi'][$why] ?? 'İnsan cevabı gerekiyor';
     self::log("DEVIR {$c['phone']} $why");
-    if ($to === '' || $to === $c['phone']) return;
-    WhatsApp::sendText($to, "🔔 $label\n" . ($c['name'] ?: 'İsimsiz') . ' · +' . $c['phone'] . "\nSon mesaj: " . mb_substr($last, 0, 300) . "\n\nAsistan bu konuşmada " . self::DEVIR_SAAT . ' saat susacak; cevabı WhatsApp Business uygulamasından verebilirsiniz.');
+    if ($to === '') return;
+    WhatsApp::sendText($to, "🔔 $label\n" . ($c['name'] ?: 'İsimsiz') . ' · +' . $c['phone'] . "\nSon mesaj: " . mb_substr($last, 0, 300) . "\n\nAsistan genel soruları cevaplamaya devam eder. Siz bu kişiye WhatsApp Business uygulamasından yazdığınızda " . self::INSAN_SAAT . ' saat araya girmez.');
   }
 
   /* ---------- gelen mesaj ---------- */
@@ -157,7 +159,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
 
     $reply = null; $handoff = null;
     if (env('ASISTAN_KAPALI') === '1' || !WhatsApp::on()) { self::save($c); return; }
-    if ($c['handoffUntil'] > $now) { self::save($c); return; } // insan ilgileniyor, asistan susar
+    if ((int)($c['humanUntil'] ?? 0) > $now) { self::save($c); return; } // ekipten biri şu an yazışıyor, asistan araya girmez
 
     if (in_array($m['type'], ['image', 'document'], true)) {
       $reply = self::fixed('dekont', $c['lang']); $handoff = 'dekont';
@@ -169,7 +171,12 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       $handoff = 'bilinmiyor';
     } else {
       try {
-        $o = self::claude(self::history($c));
+        $durum = '';
+        if ((int)($c['handoffAt'] ?? 0) > $now - 3 * 86400)
+          $durum = 'DURUM: Bu kişinin konusu ' . date('d.m H:i', (int)$c['handoffAt']) . ' tarihinde ekibe iletildi (neden: ' . ($c['handoffWhy'] ?? '') . '). '
+            . 'Ekip kişiye dönecek. Kişi yeni sorular sorarsa kurallara göre cevaplamaya devam et; fikrini ya da tercihini değiştirirse bunu kabul et, not aldığını söyle ve devret (neden: güncelleme) ki ekip yeni tercihi görsün; '
+            . 'IBAN, gün-saat ve kesin kayıt için yine ekibin döneceğini hatırlat. Yeni bir neden yoksa tekrar devretmene gerek yok.';
+        $o = self::claude(self::history($c), $durum);
         $reply = trim((string)$o['cevap']);
         if (!empty($o['dil']) && in_array($o['dil'], ['tr', 'en', 'ru', 'de'], true)) $c['lang'] = $o['dil'];
         if (!empty($o['devret'])) $handoff = (string)($o['neden'] ?: 'diğer');
@@ -184,12 +191,24 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       if (!$r['ok']) self::log('GONDERILEMEDI ' . $r['error']);
     }
     if ($handoff !== null) {
-      $c['handoffUntil'] = time() + self::DEVIR_SAAT * 3600;
       $c['msgs'][] = ['r' => 's', 't' => "devir: $handoff", 'ts' => time()];
+      // aynı nedenle sık sık bildirim gitmesin; neden değişirse ya da süre geçtiyse yeniden bildir
+      $again = $handoff !== ($c['handoffWhy'] ?? '') || (int)($c['notifiedAt'] ?? 0) < time() - self::BILDIRIM_ARA_SAAT * 3600 || in_array($handoff, ['acil', 'güncelleme', 'guncelleme'], true);
+      $c['handoffAt'] = time(); if (!in_array($handoff, ['güncelleme', 'guncelleme'], true)) $c['handoffWhy'] = $handoff;
+      if ($again) $c['notifiedAt'] = time();
       self::save($c);
-      self::notify($c, $handoff, $label);
+      if ($again) self::notify($c, $handoff, $label);
       return;
     }
+    self::save($c);
+  }
+
+  // Ekip, WhatsApp Business uygulamasından bu kişiye yazdı (coexistence yankısı): asistan bir süre araya girmez
+  static function humanReply(string $to, string $text): void {
+    if ($to === '') return;
+    $c = self::load($to);
+    $c['humanUntil'] = time() + self::INSAN_SAAT * 3600;
+    $c['msgs'][] = ['r' => 'h', 't' => $text, 'ts' => time()];
     self::save($c);
   }
 
@@ -235,7 +254,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       $age = $now - (int)$c['lastUser'];
       $lastMsg = $c['msgs'] ? end($c['msgs']) : [];
       if (env('ASISTAN_TAKIP', '1') !== '0' && env('ASISTAN_KAPALI') !== '1' && empty($c['followed'])
-        && $age >= 20 * 3600 && $age < 23.5 * 3600 && ($lastMsg['r'] ?? '') === 'a' && (int)$c['handoffUntil'] < $now) {
+        && $age >= 20 * 3600 && $age < 23.5 * 3600 && ($lastMsg['r'] ?? '') === 'a' && (int)($c['handoffAt'] ?? 0) < $now - 86400 && (int)($c['humanUntil'] ?? 0) < $now) {
         $txt = self::fixed('takip', $c['lang'] ?? 'tr');
         $r = WhatsApp::sendText($c['phone'], $txt);
         $c['followed'] = true;
