@@ -251,6 +251,25 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
 
     $reply = null; $handoff = null;
     if (env('ASISTAN_KAPALI') === '1' || !WhatsApp::on()) { self::save($c); return; }
+    // Ekip (bildirim) numarası yazdı: günün ilk mesajında pencerenin açıldığını bildir; komutlara cevap ver
+    $team = array_filter(preg_split('/[\s,;]+/', preg_replace('/[^\d,; ]/', '', env('ASISTAN_BILDIRIM_NUMARASI'))) ?: []);
+    if (in_array($m['from'], $team, true)) {
+      $low = mb_strtolower($m['text']);
+      $teamF = self::dir() . '/_ekip.json';
+      $t = is_file($teamF) ? (json_decode((string)file_get_contents($teamF), true) ?: []) : [];
+      if (preg_match('/^\s*(bitti|tamam|tamamlandı)\s+\+?(\d{4,})/u', $low, $mm)) {
+        $n = self::resolve($mm[2]);
+        self::save($c); WhatsApp::sendText($m['from'], $n ? "✅ $n kişinin bekleyen işi kapatıldı." : 'Bu numarayla bekleyen bir iş bulamadım.'); return;
+      }
+      if (preg_match('/durum|özet|ozet|atladı|atladi|bekleyen|yapılacak|yapilacak|ne var/u', $low)) {
+        self::save($c); WhatsApp::sendText($m['from'], self::summary()); return;
+      }
+      if (($t['ack'] ?? '') !== date('Y-m-d')) {
+        $t['ack'] = date('Y-m-d'); @file_put_contents($teamF, json_encode($t), LOCK_EX);
+        WhatsApp::sendText($m['from'], "✅ Bildirim penceresi açıldı: bugün size gelecek bildirimler 24 saat boyunca ücretsiz.\n\n• \"durum\" yazın → günün özeti ve bekleyen işler\n• \"bitti 4321\" yazın → o numarayla ilgili işi kapatır (son 4 hane yeter)");
+      }
+      // sonra normal akış: test için asistan bu numaraya da müşteri gibi cevap verir
+    }
     if ((int)($c['humanUntil'] ?? 0) > $now) { self::save($c); return; } // ekipten biri şu an yazışıyor, asistan araya girmez
 
     if (in_array($m['type'], ['image', 'document'], true)) {
@@ -309,6 +328,70 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     $c['humanUntil'] = time() + self::INSAN_SAAT * 3600;
     $c['msgs'][] = ['r' => 'h', 't' => $text, 'ts' => time()];
     self::save($c);
+  }
+
+  /* ---------- ekip komutları: günün özeti, bekleyen işler ---------- */
+  static function pending(): array {
+    $now = time(); $out = [];
+    foreach (glob(self::dir() . '/k_*.json') ?: [] as $f) {
+      $c = json_decode((string)file_get_contents($f), true); if (!$c) continue;
+      $h = (int)($c['handoffAt'] ?? 0);
+      if ($h < $now - 3 * 86400 || (int)($c['resolvedAt'] ?? 0) > $h) continue;
+      foreach ($c['msgs'] as $x) if ($x['r'] === 'h' && $x['ts'] > $h) continue 2; // ekip yazmış
+      $out[] = ['kanal' => 'WhatsApp', 'ad' => $c['name'] ?: 'İsimsiz', 'tel' => $c['phone'], 'neden' => $c['handoffWhy'] ?? '', 'ozet' => $c['ozet'] ?? '', 'ts' => $h];
+    }
+    foreach (glob(self::dir() . '/w_*.json') ?: [] as $f) {
+      $c = json_decode((string)file_get_contents($f), true); if (!$c || empty($c['notified']) || filemtime($f) < $now - 3 * 86400 || !empty($c['resolvedAt'])) continue;
+      $tel = preg_replace('/\D/', '', (string)($c['telefon'] ?? ''));
+      $out[] = ['kanal' => 'Web sohbeti', 'ad' => $c['ad'] ?: 'İsim vermedi', 'tel' => $tel, 'neden' => explode('|', $c['notified'])[0], 'ozet' => $c['ozet'] ?? '', 'ts' => filemtime($f), 'wf' => $f];
+    }
+    foreach (Store::read('messages', []) as $msg) {
+      $ts = strtotime((string)($msg['at'] ?? '')) ?: 0;
+      if ($ts < $now - 3 * 86400 || !empty($msg['done'])) continue;
+      $out[] = ['kanal' => 'İletişim formu', 'ad' => $msg['name'] ?? '', 'tel' => preg_replace('/\D/', '', (string)($msg['phone'] ?? '')), 'neden' => $msg['topic'] ?? '', 'ozet' => mb_substr((string)($msg['message'] ?? ''), 0, 160), 'ts' => $ts, 'mid' => $msg['id'] ?? ''];
+    }
+    usort($out, fn($a, $b) => $a['ts'] <=> $b['ts']);
+    return $out;
+  }
+  static function resolve(string $digits): int {
+    $n = 0; $now = time();
+    foreach (glob(self::dir() . '/k_*.json') ?: [] as $f) {
+      $c = json_decode((string)file_get_contents($f), true);
+      if ($c && str_ends_with($c['phone'], $digits)) { $c['resolvedAt'] = $now; self::save($c); $n++; }
+    }
+    foreach (glob(self::dir() . '/w_*.json') ?: [] as $f) {
+      $c = json_decode((string)file_get_contents($f), true);
+      if ($c && ($t = preg_replace('/\D/', '', (string)($c['telefon'] ?? ''))) !== '' && str_ends_with($t, $digits)) { $c['resolvedAt'] = $now; self::saveWeb($c); $n++; }
+    }
+    Store::update('messages', [], function ($l) use ($digits, &$n) {
+      foreach ($l as &$x) if (($t = preg_replace('/\D/', '', (string)($x['phone'] ?? ''))) !== '' && str_ends_with($t, $digits) && empty($x['done'])) { $x['done'] = true; $n++; }
+      return $l;
+    });
+    return $n;
+  }
+  static function summary(): string {
+    $now = time(); $since = $now - 86400; $wa = 0; $web = 0; $new = 0;
+    foreach (glob(self::dir() . '/k_*.json') ?: [] as $f) {
+      $c = json_decode((string)file_get_contents($f), true); if (!$c) continue;
+      if (array_filter($c['msgs'], fn($x) => $x['r'] === 'u' && $x['ts'] > $since)) { $wa++; if ((int)($c['created'] ?? 0) > $since) $new++; }
+    }
+    foreach (glob(self::dir() . '/w_*.json') ?: [] as $f) if (filemtime($f) > $since) $web++;
+    $forms = count(array_filter(Store::read('messages', []), fn($x) => (strtotime((string)($x['at'] ?? '')) ?: 0) > $since));
+    $u = self::usage();
+    $p = self::pending();
+    $lines = ['📊 Son 24 saat', "• WhatsApp'ta yazışan: $wa kişi ($new yeni)", "• Site sohbeti: $web konuşma", "• İletişim formu: $forms mesaj",
+      '• Asistan harcaması bu ay: $' . number_format($u['usd'], 2) . ' / $' . number_format((float)(env('ASISTAN_AYLIK_TAVAN_USD') ?: 5), 2), ''];
+    if (!$p) $lines[] = '✅ Bekleyen iş yok.';
+    else {
+      $lines[] = '📋 Dönüş bekleyenler (' . count($p) . '):';
+      foreach (array_slice($p, 0, 15) as $i => $x) {
+        $lines[] = ($i + 1) . '. ' . $x['ad'] . ' · ' . $x['kanal'] . ' · ' . ($x['neden'] ?: '-') . ' · ' . date('d.m H:i', $x['ts']);
+        if ($x['ozet'] !== '') $lines[] = '   ' . mb_substr($x['ozet'], 0, 160);
+        if ($x['tel'] !== '') $lines[] = '   👉 wa.me/' . (strlen($x['tel']) === 10 && $x['tel'][0] === '5' ? '90' . $x['tel'] : (strlen($x['tel']) === 11 && $x['tel'][0] === '0' ? '9' . $x['tel'] : $x['tel']));
+      }
+      $lines[] = ''; $lines[] = 'İşi biten için "bitti" ve numaranın son 4 hanesini yazın (ör. bitti 4321).';
+    }
+    return implode("\n", $lines);
   }
 
   static function fixed(string $k, string $l): string {
