@@ -10,7 +10,9 @@
 //   ASISTAN_KAPALI=1                 Acil durumda asistanı tamamen susturur (mesajlar yine kaydedilir)
 final class Asistan {
   const SAKLA_GUN = 90;           // konuşmalar 90 gün sonra silinir (KVKK)
-  const GUNLUK_KISI_SINIRI = 40;  // bir kişiye günde en çok bu kadar yapay zekâ cevabı
+  const GUNLUK_KISI_SINIRI = 30;  // bir kişiye günde en çok bu kadar yapay zekâ cevabı (sonrası ekibe kalır)
+  const DAKIKA_SINIRI = 5;        // 2 dakikada bundan fazla mesaj gelirse asistan cevaplamaz (seri mesaj/spam)
+  const MESAJ_UZUNLUK = 1500;     // tek mesajın en fazla bu kadar karakteri yapay zekâya gider
   const INSAN_SAAT = 2;           // ekip WhatsApp Business uygulamasından yazınca asistan bu kadar saat araya girmez
   const BILDIRIM_ARA_SAAT = 6;    // aynı kişi için aynı nedenle en sık bu aralıkla bildirim
 
@@ -127,8 +129,9 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
   private static function history(array $c): array {
     $out = [];
     foreach (array_slice($c['msgs'], -20) as $m) {
-      if (!in_array($m['r'], ['u', 'a'], true) || trim($m['t']) === '') continue;
+      if (!in_array($m['r'], ['u', 'a', 'h'], true) || trim($m['t']) === '') continue;
       $role = $m['r'] === 'u' ? 'user' : 'assistant';
+      if ($m['r'] === 'h') $m['t'] = '[Bu mesajı ekipten bir kişi WhatsApp Business uygulamasından yazdı] ' . $m['t'];
       if ($out && end($out)['role'] === $role) { $out[count($out) - 1]['content'] .= "\n" . $m['t']; continue; }
       if (!$out && $role === 'assistant') continue;
       $out[] = ['role' => $role, 'content' => $m['t']];
@@ -152,7 +155,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     $c = self::load($m['from']);
     if ($m['name'] !== '') $c['name'] = $m['name'];
     $now = time();
-    $label = $m['text'] !== '' ? $m['text'] : '[' . $m['type'] . ']';
+    $label = $m['text'] !== '' ? mb_substr($m['text'], 0, self::MESAJ_UZUNLUK) : '[' . $m['type'] . ']';
     $c['msgs'][] = ['r' => 'u', 't' => $label, 'ts' => $now, 'type' => $m['type']];
     $c['lastUser'] = $now; $c['followed'] = false;
     WhatsApp::markRead($m['id']);
@@ -165,6 +168,8 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       $reply = self::fixed('dekont', $c['lang']); $handoff = 'dekont';
     } elseif (in_array($m['type'], ['audio', 'video', 'sticker', 'location', 'contacts'], true) || $m['text'] === '') {
       $reply = self::fixed('medya', $c['lang']); $handoff = 'medya';
+    } elseif (count(array_filter($c['msgs'], fn($x) => $x['r'] === 'u' && $x['ts'] > $now - 120)) > self::DAKIKA_SINIRI) {
+      self::save($c); return; // art arda çok mesaj: kaydet ama cevaplama (sonraki mesajda toplu cevap verir)
     } elseif (self::overBudget()) {
       $reply = self::fixed('butce', $c['lang']); $handoff = 'butce';
     } elseif (count(array_filter($c['msgs'], fn($x) => $x['r'] === 'a' && $x['ts'] > $now - 86400)) >= self::GUNLUK_KISI_SINIRI) {
@@ -176,6 +181,10 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
           $durum = 'DURUM: Bu kişinin konusu ' . date('d.m H:i', (int)$c['handoffAt']) . ' tarihinde ekibe iletildi (neden: ' . ($c['handoffWhy'] ?? '') . '). '
             . 'Ekip kişiye dönecek. Kişi yeni sorular sorarsa kurallara göre cevaplamaya devam et; fikrini ya da tercihini değiştirirse bunu kabul et, not aldığını söyle ve devret (neden: güncelleme) ki ekip yeni tercihi görsün; '
             . 'IBAN, gün-saat ve kesin kayıt için yine ekibin döneceğini hatırlat. Yeni bir neden yoksa tekrar devretmene gerek yok.';
+        $h = array_values(array_filter($c['msgs'], fn($x) => $x['r'] === 'h' && $x['ts'] > $now - 7 * 86400));
+        if ($h) $durum = 'DURUM: Ekip bu kişiyle son olarak ' . date('d.m H:i', (int)end($h)['ts']) . ' tarihinde doğrudan yazıştı (geçmişte "[Bu mesajı ekipten..." diye işaretli mesajlar). '
+          . 'Ekibin söylediklerini (ödeme, IBAN, gün-saat, adres) bil ve onlarla çelişme; bunları kendin yeniden yazma, "ekibimizin yukarıdaki mesajında" diye yönlendir. '
+          . 'Ödeme yaptığını, dekont gönderdiğini, saat değiştirmek ya da iptal etmek istediğini söylerse devret. Selam ya da genel soru ise sıcak ve kısa cevap ver; konuyu baştan anlatma.';
         $o = self::claude(self::history($c), $durum);
         $reply = trim((string)$o['cevap']);
         if (!empty($o['dil']) && in_array($o['dil'], ['tr', 'en', 'ru', 'de'], true)) $c['lang'] = $o['dil'];
