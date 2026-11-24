@@ -20,3 +20,8 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 3. `guncelle.php` depoyu zip olarak indirir, PHP dosyalarını sözdizimi için dener, değişen dosyaları yazar. **Hiçbir dosyayı silmez.**
 4. Hiç dokunulmayanlar: ayarlar, randevular (`bookings.json`), mesajlar, otomatik çeviriler, önbellekler.
 5. `events.json` ve `services.json` panelden de değişebildiği için yalnız commit mesajında `[icerik]` varsa yazılır (eskisi `app/data/yedek/`e kopyalanır).
+
+## E-posta (şimdilik kapalı)
+- Aynur Hanım'ın isteğiyle her şey WhatsApp'a yönleniyor: randevu ve iletişim formu bilgileri WhatsApp'ta hazır mesaj olarak açılır, mesajlar `app/data/messages.json`'a da kaydedilir.
+- E-posta kodu yerinde duruyor. Açmak için sunucudaki `app/ayarlar.env`'de `MAIL_ENABLED=1` yapın ve `SMTP_PASS`'e info@aynurtumen.com.tr kutusunun **doğru** şifresini yazın (24.11.2026'da yazılan şifre SMTP girişinde reddedildi). Hostinger editöründe Ctrl+S yetmez, sağ üstteki **Dağıt** düğmesine de basılmalı.
+- Açınca test: tek e-posta gönderip Gmail'de başlıklarda `dkim=pass` ve `dmarc=pass` görülmeli.

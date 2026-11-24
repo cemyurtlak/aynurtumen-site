@@ -638,12 +638,12 @@ function page_iletisim(bool $sent = false, ?string $error = null): string {
       <form class="form" method="post" action="/iletisim">
         $err
         <div class="row"><label>Ad soyad<input name="name" required autocomplete="name"></label><label>Telefon<input name="phone" type="tel" autocomplete="tel"></label></div>
-        <label>E-posta<input name="email" type="email" required autocomplete="email"></label>
+        {$_(mail_on() ? '<label>E-posta<input name="email" type="email" required autocomplete="email"></label>' : '')}
         <label>Konu<select name="topic"><option>Bireysel aile dizimi</option><option>Grup çalışmaları ve kamplar</option><option>Akademi ve eğitimler</option><option>Kurumsal seminer</option><option>Basın ve iş birliği</option><option>Diğer</option></select></label>
         <label>Mesajınız<textarea name="message" rows="5" required></textarea></label>
         <label class="check"><input type="checkbox" name="kvkk" required> <span>Kişisel verilerimin işlenmesini onaylıyorum. <a href="/yasal#kvkk" target="_blank">KVKK aydınlatma metni</a></span></label>
         <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <button class="btn btn-violet" type="submit">Mesajı gönder</button>
+        {$_(mail_on() ? '<button class="btn btn-violet" type="submit">Mesajı gönder</button>' : '<button class="btn btn-wa" type="submit">' . WA_ICON . ' WhatsApp’tan gönder</button><p class="small muted">Gönder’e bastığında WhatsApp açılır ve mesajın hazır yazılmış olur; göndermen yeterli.</p>')}
       </form>
 HTML;
   $body = <<<HTML
@@ -701,7 +701,7 @@ function page_randevu(array $query): string {
     <div class="wizard" id="wizard" data-i18n-live
       data-services='{$_(esc($svcJson))}'
       data-events='{$_(esc($evJson))}'
-      data-pre-service="{$_(esc($query['hizmet'] ?? ''))}" data-pre-event="{$_(esc($query['etkinlik'] ?? ''))}" data-pay="wa" data-wa-icon="{$_(esc(WA_ICON))}">
+      data-pre-service="{$_(esc($query['hizmet'] ?? ''))}" data-pre-event="{$_(esc($query['etkinlik'] ?? ''))}" data-pay="wa" data-mail="{$_(mail_on() ? '1' : '0')}" data-wa-icon="{$_(esc(WA_ICON))}">
       <ol class="steps-bar" aria-label="Adımlar"><li>Çalışma</li><li>Görüşme şekli</li><li>Tarih ve saat</li><li>Bilgilerin</li><li>Özet</li></ol>
       <div class="wizard-body" aria-live="polite"></div>
       <div class="wizard-nav"><button class="btn btn-line" type="button" data-back>Geri</button><button class="btn btn-violet" type="button" data-next>Devam et</button></div>
@@ -733,7 +733,8 @@ function page_talep(array $b): string {
         <a class=\"btn btn-wa\" href=\"" . esc(Booking::waUrl($b)) . "\" target=\"_blank\" rel=\"noopener\">" . WA_ICON . " WhatsApp'tan gönder</a>
         <a class=\"btn btn-line-light\" href=\"/\">Ana sayfaya dön</a>
       </div>
-      <p class=\"small load-in\" style=\"--d:450ms\">Talebinin özeti e-postana da gönderildi.</p>";
+" . (mail_on() && $b['email'] !== '' ? "
+      <p class=\"small load-in\" style=\"--d:450ms\">Talebinin özeti e-postana da gönderildi.</p>" : '');
   $body = okHero(OFF . esc(str_replace('{ad}', $first, (string)t('Talebin alındı, {ad}.'))) . ON, esc(t($b['itemName'])) . " · {$d['long']}, {$d['hm']}", $rest);
   return layout(['title' => 'Talebin alındı', 'path' => '/randevu', 'body' => $body]);
 }
@@ -747,7 +748,7 @@ function page_onay(array $b): string {
         <a class=\"btn btn-line-light\" href=\"/randevu/" . esc($b['id']) . '/takvim.ics?k=' . esc($b['key']) . "\">Takvimime ekle</a>
         <a class=\"btn btn-wa\" href=\"" . wa('Merhaba, ' . $b['itemName'] . ' için kaydımı tamamladım. (' . $b['id'] . ')') . "\" target=\"_blank\" rel=\"noopener\">" . WA_ICON . " WhatsApp'tan yaz</a>
       </div>
-      <p class=\"small load-in\" style=\"--d:450ms\">" . ($online ? 'Görüşme odasının bağlantısı e-postana da gönderildi. Bu sayfayı yer imlerine ekleyebilirsin.' : 'Adres ve yol tarifi WhatsApp ile iletilecek.') . '</p>';
+      <p class=\"small load-in\" style=\"--d:450ms\">" . ($online ? (mail_on() ? 'Görüşme odasının bağlantısı e-postana da gönderildi. Bu sayfayı yer imlerine ekleyebilirsin.' : 'Görüşme odasının bağlantısı WhatsApp ile de iletilecek. Bu sayfayı yer imlerine ekleyebilirsin.') : 'Adres ve yol tarifi WhatsApp ile iletilecek.') . '</p>';
   $body = okHero(OFF . esc(str_replace('{ad}', $first, (string)t('Kaydın tamamlandı, {ad}.'))) . ON, esc(t($b['itemName'])) . " · {$d['long']}, {$d['hm']}", $rest);
   return layout(['title' => 'Kaydın tamamlandı', 'path' => '/randevu', 'body' => $body]);
 }

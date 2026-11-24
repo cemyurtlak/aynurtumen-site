@@ -534,5 +534,8 @@
  "Yazılarda ara: baba, para, ilişki…": "Search in Turkish, e.g. baba (father), para (money)…",
  "{n} yazı": "{n} articles",
  "1 yazı": "1 article",
- "Bu kelimeyle ilgili yazı bulunamadı.": "No articles found for this word."
+ "Bu kelimeyle ilgili yazı bulunamadı.": "No articles found for this word.",
+ "Gönder’e bastığında WhatsApp açılır ve mesajın hazır yazılmış olur; göndermen yeterli.": "When you press Send, WhatsApp opens with your message ready; just send it.",
+ "Lütfen ad ve mesaj alanlarını doldurup KVKK onayını işaretleyin.": "Please fill in your name and message and tick the privacy consent.",
+ "Görüşme odasının bağlantısı WhatsApp ile de iletilecek. Bu sayfayı yer imlerine ekleyebilirsin.": "The link to the session room will also be sent via WhatsApp. You can bookmark this page."
 }

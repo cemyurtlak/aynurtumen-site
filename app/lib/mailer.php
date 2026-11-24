@@ -4,8 +4,13 @@
 // DKIM imzası atılır, SPF/DMARC alan adıyla uyumlu olur, spam'e düşme ihtimali azalır).
 // SMTP_PASS yoksa sunucunun kendi gönderimi (PHP mail) kullanılır. MAIL_FROM yoksa hiç gönderilmez.
 // Ayarlar app/ayarlar.env içinde: MAIL_FROM, MAIL_FROM_NAME, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+// E-posta sistemi şimdilik kapalı: her şey WhatsApp'a yönleniyor. Yeniden açmak için ayarlar.env'de MAIL_ENABLED=1 yapın
+// (SMTP_PASS'e info@ kutusunun doğru şifresini yazmayı unutmayın).
+function mail_on(): bool { return env('MAIL_ENABLED') === '1' && (env('MAIL_FROM') !== '' || env('SMTP_USER') !== ''); }
+
 final class Mailer {
   static function send(string $to, string $subject, string $html): bool {
+    if (!mail_on()) { error_log("[e-posta kapalı] $to · $subject"); return false; }
     $from = env('MAIL_FROM') ?: env('SMTP_USER');
     if ($from === '' || $to === '') { error_log("[e-posta] $to · $subject"); return false; }
     $name = env('MAIL_FROM_NAME') ?: 'Aynur Tümen';

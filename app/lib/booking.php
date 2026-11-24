@@ -59,7 +59,7 @@ final class Booking {
     $email = trim((string)($in['email'] ?? ''));
     if (mb_strlen($name) < 3) $errors['name'] = 'Ad ve soyadınızı yazın.';
     if (strlen(preg_replace('/\D/', '', $phone)) < 10) $errors['phone'] = 'Telefon numaranızı 05xx xxx xx xx biçiminde yazın.';
-    if (!preg_match('/^[^\s@]+@[^\s@]+\.[^\s@]+$/u', $email)) $errors['email'] = 'Geçerli bir e-posta adresi yazın.';
+    if ((mail_on() || $email !== '') && !preg_match('/^[^\s@]+@[^\s@]+\.[^\s@]+$/u', $email)) $errors['email'] = 'Geçerli bir e-posta adresi yazın.';
     if (empty($in['kvkk'])) $errors['kvkk'] = 'Devam etmek için KVKK aydınlatma metnini onaylayın.';
     $item = null; $start = $duration = $mode = $price = null; $eventId = null;
     if (!empty($in['eventId'])) {
@@ -144,8 +144,8 @@ final class Booking {
       $tt('Zaman') . ': ' . self::fmtDate($b['start'], $L) . ' (' . $tt('Türkiye saati') . ')',
       $tt('Ad soyad') . ': ' . $b['name'],
       $tt('Telefon') . ': ' . $b['phone'],
-      $tt('E-posta') . ': ' . $b['email'],
     ];
+    if ($b['email'] !== '') $lines[] = $tt('E-posta') . ': ' . $b['email'];
     if ($b['note'] !== '') $lines[] = $tt('Not') . ': ' . $b['note'];
     $lines[] = $tt('Kayıt no') . ': ' . $b['id'];
     return 'https://wa.me/' . Store::read('settings', [])['phoneIntl'] . '?text=' . js_uri(implode("\n", $lines));

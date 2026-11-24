@@ -28,6 +28,7 @@
   else if (preS && services.find(s => s.id === preS)) { st.kind = 'service'; st.item = services.find(s => s.id === preS); }
 
   const isEvent = () => st.kind === 'event';
+  const MAIL = root.dataset.mail === '1'; // e-posta sistemi kapalıyken e-posta alanı isteğe bağlı
   const PAY = root.dataset.pay === 'online'; // sitede ödeme yoksa bilgiler WhatsApp mesajı olarak açılır
   const goLabel = () => !PAY ? 'WhatsApp’tan gönder' : st.item.price ? `${tl(st.item.price)} öde` : 'Kaydı tamamla';
   const needMode = () => !isEvent() && st.item && st.item.modes.length > 1;
@@ -84,7 +85,7 @@
     const f = st.form;
     return `<h2>Bilgilerin</h2><form class="form" data-form novalidate>
       <div class="row"><label>Ad soyad<input name="name" autocomplete="name" value="${esc(f.name)}" required></label><label>Telefon (WhatsApp)<input name="phone" type="tel" autocomplete="tel" placeholder="05xx xxx xx xx" value="${esc(f.phone)}" required></label></div>
-      <label>E-posta<input name="email" type="email" autocomplete="email" value="${esc(f.email)}" required></label>
+      <label>E-posta${MAIL ? '' : ' <span class="muted">(isteğe bağlı)</span>'}<input name="email" type="email" autocomplete="email" value="${esc(f.email)}" ${MAIL ? 'required' : ''}></label>
       <label>Konunu kısaca yazabilirsin <span class="muted">(isteğe bağlı)</span><textarea name="note" rows="3" placeholder="Örn. annemle ilişkim ve tekrar eden ilişki döngülerim">${esc(f.note)}</textarea></label>
       <label class="check"><input type="checkbox" name="kvkk" ${f.kvkk ? 'checked' : ''}><span>Kişisel verilerimin kaydın yürütülmesi için işlenmesini onaylıyorum. <a href="${P('/yasal')}#kvkk" target="_blank">KVKK aydınlatma metni</a></span></label>
       <label class="check"><input type="checkbox" name="marketing" ${f.marketing ? 'checked' : ''}><span>Yeni etkinlik ve içeriklerden e-posta ve WhatsApp ile haberdar olmak istiyorum.</span></label>
@@ -147,7 +148,7 @@
     if (s === 0) return !!st.item;
     if (s === 1) return !!st.mode;
     if (s === 2) return !!(st.date && st.time);
-    if (s === 3) return f.name?.trim().length > 2 && (f.phone || '').replace(/\D/g, '').length >= 10 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email || '') && f.kvkk;
+    if (s === 3) return f.name?.trim().length > 2 && (f.phone || '').replace(/\D/g, '').length >= 10 && ((!MAIL && !(f.email || '').trim()) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email || '')) && f.kvkk;
     if (s === 4) return !PAY || !!body.querySelector('[data-agree]')?.checked;
     return true;
   }

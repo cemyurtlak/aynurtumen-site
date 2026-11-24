@@ -5,6 +5,8 @@ SITE_URL=https://www.aynurtumen.com.tr
 # Yönetim paneli (/admin) şifresi: en az 10 karakter. Boş ya da kısa olursa panel açılmaz.
 ADMIN_PASSWORD=
 
+# E-posta sistemi: 0 = kapalı (her şey WhatsApp'a gider, e-posta alanları isteğe bağlı), 1 = açık
+MAIL_ENABLED=0
 # E-posta: alan adına ait bir adres (Hostinger > E-postalar bölümünden açılır)
 MAIL_FROM=info@aynurtumen.com.tr
 MAIL_FROM_NAME=Aynur Tümen

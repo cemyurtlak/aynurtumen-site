@@ -93,9 +93,13 @@ switch (true) {
   case $route === 'POST /iletisim':
     $b = $_POST;
     if (!empty($b['website'])) { html(page_iletisim(true)); break; } // bot tuzağı
-    if (empty($b['name']) || empty($b['email']) || empty($b['message']) || empty($b['kvkk'])) { html(page_iletisim(false, 'Lütfen ad, e-posta ve mesaj alanlarını doldurup KVKK onayını işaretleyin.'), 400); break; }
+    if (empty($b['name']) || (mail_on() && empty($b['email'])) || empty($b['message']) || empty($b['kvkk'])) { html(page_iletisim(false, mail_on() ? 'Lütfen ad, e-posta ve mesaj alanlarını doldurup KVKK onayını işaretleyin.' : 'Lütfen ad ve mesaj alanlarını doldurup KVKK onayını işaretleyin.'), 400); break; }
     $msg = ['id' => rand_hex(4), 'at' => gmdate('Y-m-d\TH:i:s.v\Z'), 'name' => (string)$b['name'], 'email' => (string)$b['email'], 'phone' => (string)($b['phone'] ?? ''), 'topic' => (string)($b['topic'] ?? ''), 'message' => mb_substr((string)$b['message'], 0, 3000), 'read' => false];
     Store::update('messages', [], function ($l) use ($msg) { $l[] = $msg; return $l; });
+    if (!mail_on()) { // e-posta kapalı: mesaj kaydedilir ve WhatsApp'ta hazır yazılmış olarak açılır
+      $wa = implode("\n", array_merge(['Merhaba, web sitenizden yazıyorum.', '', 'Ad soyad: ' . $msg['name']], $msg['phone'] !== '' ? ['Telefon: ' . $msg['phone']] : [], ['Konu: ' . $msg['topic'], '', $msg['message']]));
+      redirect('https://wa.me/' . settings()['phoneIntl'] . '?text=' . js_uri($wa), 303); break;
+    }
     if (env('ADMIN_EMAIL')) later(fn() => Mailer::send(env('ADMIN_EMAIL'), 'Siteden yeni mesaj: ' . $msg['name'], '<p><b>' . esc($msg['name']) . '</b> · ' . esc($msg['email']) . ' · ' . esc($msg['phone']) . ' · ' . esc($msg['topic']) . '</p><p>' . nl2br(esc($msg['message'])) . '</p>'));
     html(page_iletisim(true)); break;
   case $route === 'GET /yasal': html(page_yasal()); break;
