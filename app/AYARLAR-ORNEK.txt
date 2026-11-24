@@ -7,6 +7,12 @@ ADMIN_PASSWORD=
 
 # E-posta: alan adına ait bir adres (Hostinger > E-postalar bölümünden açılır)
 MAIL_FROM=info@aynurtumen.com.tr
+MAIL_FROM_NAME=Aynur Tümen
+# Önerilen: e-postalar info@ kutusuyla Hostinger SMTP'den gitsin (spam'e düşmez). Şifreyi siz yazın.
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_USER=info@aynurtumen.com.tr
+SMTP_PASS=
 # Yeni randevu talepleri ve iletişim formu mesajları buraya da gelir
 ADMIN_EMAIL=aynurtmn@gmail.com
 
