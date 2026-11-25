@@ -167,6 +167,15 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       self::log('SABLON GONDERILEMEDI ' . $r2['error']);
     }
     self::log('EKIP BILDIRIMI GONDERILEMEDI ' . $r['error']);
+    // WhatsApp'a ulaşılamadı: aynı bilgiler ADMIN_EMAIL adresine e-postayla gider (e-posta sistemi kapalı olsa da)
+    if (($admin = env('ADMIN_EMAIL')) !== '') {
+      $html = '<p><b>' . esc($title) . '</b></p><p>' . esc($person) . '</p><p>' . nl2br(esc($detail)) . '</p>'
+        . ($footer !== '' ? '<p style="color:#666">' . esc($footer) . '</p>' : '')
+        . '<p style="color:#666;font-size:12px">Bu e-posta, WhatsApp bildirimi gönderilemediği için yedek olarak gönderildi.</p>';
+      $html = preg_replace('#wa\.me/(\d+)#', '<a href="https://wa.me/$1">wa.me/$1</a>', $html);
+      $ok = Mailer::send($admin, trim(preg_replace('/[^\p{L}\p{N} \-:·]/u', '', $title)) . ' · ' . $person, $html, true);
+      self::log('YEDEK E-POSTA ' . ($ok ? 'gonderildi' : 'gonderilemedi'));
+    }
     return false;
   }
 

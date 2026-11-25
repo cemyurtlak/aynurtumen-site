@@ -9,9 +9,10 @@
 function mail_on(): bool { return env('MAIL_ENABLED') === '1' && (env('MAIL_FROM') !== '' || env('SMTP_USER') !== ''); }
 
 final class Mailer {
-  static function send(string $to, string $subject, string $html): bool {
-    if (!mail_on()) { error_log("[e-posta kapalı] $to · $subject"); return false; }
-    $from = env('MAIL_FROM') ?: env('SMTP_USER');
+  // $force: e-posta sistemi kapalı olsa da gönder (yalnız ekibe giden yedek bildirimler için)
+  static function send(string $to, string $subject, string $html, bool $force = false): bool {
+    if (!mail_on() && !$force) { error_log("[e-posta kapalı] $to · $subject"); return false; }
+    $from = env('MAIL_FROM') ?: env('SMTP_USER') ?: 'info@aynurtumen.com.tr';
     if ($from === '' || $to === '') { error_log("[e-posta] $to · $subject"); return false; }
     $name = env('MAIL_FROM_NAME') ?: 'Aynur Tümen';
     $encName = '=?UTF-8?B?' . base64_encode($name) . '?=';
