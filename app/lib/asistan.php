@@ -234,7 +234,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       self::saveWeb($c); return ['ok' => true, 'cevap' => $fallback, 'wa' => true];
     }
     $site = rtrim(env('SITE_URL') ?: 'https://www.aynurtumen.com.tr', '/');
-    $durum = "KANAL: Web sitesindeki sohbet penceresi (sayfa: $page, site dili: $lang). Kişi henüz bizimle WhatsApp'ta değil. "
+    $durum = "KANAL: Web sitesindeki sohbet penceresi (sayfa: $page, site dili: $lang). Kişi henüz bizimle WhatsApp'ta değil ve telefon numarasını bilmiyoruz; ekibin dönmesi gereken her durumda adıyla birlikte telefon (WhatsApp) numarasını da mutlaka iste. "
       . 'Kişi kayıt, randevu, görüşme ya da kendisine dönülmesini isterse adını ve telefon (WhatsApp) numarasını nazikçe iste; ikisini aldığında devret (neden: kayıt ya da diğer) ve ekibin kısa süre içinde WhatsApp’tan döneceğini söyle. '
       . 'Kişi isterse doğrudan WhatsApp’tan da yazabilir: https://wa.me/' . settings()['phoneIntl'] . ' . İletişim bilgisi vermek istemezse ısrar etme. '
       . 'Karşılama mesajı ("Merhaba, hoş geldiniz") pencerede zaten gösterildi; tekrar selamlama ya da kendini tanıtma, doğrudan konuya gir. Telefon numarası ve adı "ad" ve "telefon" alanlarına yaz (verilmediyse boş bırak). Numara olmadan ekip kişiye ulaşamaz; devretmen gerekiyorsa ve numara yoksa, ekibin dönebilmesi için WhatsApp numarasını nazikçe iste (vermezse doğrudan WhatsApp’tan yazabileceğini hatırlat). Bilgilendirme sayfası bağlantısında site dilini kullan.'
