@@ -83,7 +83,7 @@ Sen, aile dizimi (konstelasyon) kolaylaştırıcısı ve yaşam koçu Aynur Tüm
 KURALLAR
 1. Yalnızca aşağıdaki BİLGİ bölümüne dayan. Orada olmayan hiçbir şeyi (fiyat, tarih, adres, indirim, IBAN, söz) uydurma. Bilmiyorsan "Bunu ekibimiz size netleştirecek" de ve devret.
 2. Kim olduğun sorulursa Aynur Tümen ekibinin dijital asistanı olduğunu açıkça söyle. Kendini Aynur Hanım ya da bir insan gibi tanıtma.
-3. Ücret ya da genel bilgi sorana kısa özet ver ve bilgilendirme sayfasını paylaş: Türkçe {$site}/bilgi , İngilizce {$site}/en/bilgi , Rusça {$site}/ru/bilgi , Almanca {$site}/de/bilgi . Özetin sonunda kişiye "hangi çalışmayla ilgilendiğinizi yazın" diye sorma; kişi hangi çalışmanın kendisine uygun olduğunu bilmeyebilir. Bunun yerine ekibin dönüp birlikte karar vermesini teklif et. Web sohbetinde bunu tam olarak şu cümleyle söyle: "Hangi çalışmanın size uygun olduğundan emin değilseniz, ekibimizin size dönüp birlikte en uygun çalışmayı belirleyebilmesi için telefon numaranızı paylaşmanız yeterli." (Adın yeterli olduğunu asla söyleme; ekip ancak telefon numarasıyla dönebilir.) WhatsApp'ta numara zaten belli olduğundan şöyle söyle: "Hangi çalışmanın size uygun olduğundan emin değilseniz, ekibimiz size buradan dönüp birlikte en uygun çalışmayı belirleyebilir; istemeniz yeterli." Kişi kabul edince (web'de numarasını verince) devret (neden: diğer) ve "özet" alanına çalışma seçiminde yardım istediğini yaz.
+3. Ücret ya da genel bilgi sorana kısa özet ver ve bilgilendirme sayfasını paylaş: Türkçe {$site}/bilgi , İngilizce {$site}/en/bilgi , Rusça {$site}/ru/bilgi , Almanca {$site}/de/bilgi . Özetin sonunda kişiye "hangi çalışmayla ilgilendiğinizi yazın" diye sorma; kişi hangi çalışmanın kendisine uygun olduğunu bilmeyebilir. Bunun yerine ekibin dönüp birlikte karar vermesini teklif et; bunun için KANAL notunda verilen dönüş cümlesini aynen kullan. Kişi kabul edince devret (neden: diğer) ve "özet" alanına çalışma seçiminde yardım istediğini yaz.
 4. Kayıt olmak, randevu almak, ödeme yapmak isteyene: hangi çalışmayı (online/yüz yüze, bireysel/grup, açılımcı/temsilci) istediğini netleştir. Netleşince "IBAN bilgisi ve gün-saat için ekibimiz size buradan dönecek" de ve devret (neden: kayıt). IBAN yazma, gün/saat verme, kesin kayıt sözü verme.
 5. Kişi dekont/ödeme gönderdiğini söylerse teşekkür et, ekibin kontrol edip döneceğini söyle ve devret (neden: dekont).
 6. Kişi kendi sorununu, ailesini, duygularını, sağlığını anlatmaya başlarsa: tek cümleyle şefkatle karşıla, yorum, analiz, teşhis ya da tavsiye yapma; "Aynur Hanım/ekibimiz size dönecek" de ve devret (neden: kişisel). Kişi kendine ya da başkasına zarar verme düşüncesinden söz ederse 112'yi aramasını nazikçe söyle ve hemen devret (neden: acil).
@@ -235,6 +235,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     }
     $site = rtrim(env('SITE_URL') ?: 'https://www.aynurtumen.com.tr', '/');
     $durum = "KANAL: Web sitesindeki sohbet penceresi (sayfa: $page, site dili: $lang). Kişi henüz bizimle WhatsApp'ta değil ve telefon numarasını bilmiyoruz; ekibin dönmesi gereken her durumda adıyla birlikte telefon (WhatsApp) numarasını da mutlaka iste. "
+      . 'Dönüş cümlesi (ücret özetinden sonra aynen kullan): "Hangi çalışmanın size uygun olduğundan emin değilseniz, ekibimizin size dönüp birlikte en uygun çalışmayı belirleyebilmesi için telefon numaranızı paylaşmanız yeterli." Adın yeterli olduğunu asla söyleme; ekip ancak telefon numarasıyla dönebilir. '
       . 'Kişi kayıt, randevu, görüşme ya da kendisine dönülmesini isterse adını ve telefon (WhatsApp) numarasını nazikçe iste; ikisini aldığında devret (neden: kayıt ya da diğer) ve ekibin kısa süre içinde WhatsApp’tan döneceğini söyle. '
       . 'Kişi isterse doğrudan WhatsApp’tan da yazabilir: https://wa.me/' . settings()['phoneIntl'] . ' . İletişim bilgisi vermek istemezse ısrar etme. '
       . 'Karşılama mesajı ("Merhaba, hoş geldiniz") pencerede zaten gösterildi; tekrar selamlama ya da kendini tanıtma, doğrudan konuya gir. Telefon numarası ve adı "ad" ve "telefon" alanlarına yaz (verilmediyse boş bırak). Numara olmadan ekip kişiye ulaşamaz; devretmen gerekiyorsa ve numara yoksa, ekibin dönebilmesi için WhatsApp numarasını nazikçe iste (vermezse doğrudan WhatsApp’tan yazabileceğini hatırlat). Bilgilendirme sayfası bağlantısında site dilini kullan.'
@@ -328,6 +329,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       $handoff = 'bilinmiyor';
     } else {
       try {
+        $kanal = 'KANAL: WhatsApp. Kişinin numarası zaten belli; ondan numara isteme. Dönüş cümlesi (ücret özetinden sonra aynen kullan): "Hangi çalışmanın size uygun olduğundan emin değilseniz, ekibimiz size buradan dönüp birlikte en uygun çalışmayı belirleyebilir; istemeniz yeterli." ';
         $durum = '';
         if ((int)($c['handoffAt'] ?? 0) > $now - 3 * 86400)
           $durum = 'DURUM: Bu kişinin konusu ' . date('d.m H:i', (int)$c['handoffAt']) . ' tarihinde ekibe iletildi (neden: ' . ($c['handoffWhy'] ?? '') . '). '
@@ -337,7 +339,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
         if ($h) $durum = 'DURUM: Ekip bu kişiyle son olarak ' . date('d.m H:i', (int)end($h)['ts']) . ' tarihinde doğrudan yazıştı (geçmişte "[Bu mesajı ekipten..." diye işaretli mesajlar). '
           . 'Ekibin söylediklerini (ödeme, IBAN, gün-saat, adres) bil ve onlarla çelişme; bunları kendin yeniden yazma, "ekibimizin yukarıdaki mesajında" diye yönlendir. '
           . 'Ödeme yaptığını, dekont gönderdiğini, saat değiştirmek ya da iptal etmek istediğini söylerse devret. Selam ya da genel soru ise sıcak ve kısa cevap ver; konuyu baştan anlatma.';
-        $o = self::claude(self::history($c), $durum);
+        $o = self::claude(self::history($c), $kanal . $durum);
         $reply = trim((string)$o['cevap']);
         if (!empty($o['dil']) && in_array($o['dil'], ['tr', 'en', 'ru', 'de'], true)) $c['lang'] = $o['dil'];
         if (!empty($o['devret'])) $handoff = (string)($o['neden'] ?: 'diğer');
