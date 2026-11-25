@@ -186,10 +186,9 @@ function page_home(array $videos, array $ig, array $posts): string {
           <a class="btn btn-gold" href="/randevu">Online randevu al</a>
           <a class="btn btn-wa" href="{$_(wa('Merhaba, web sitenizden yazıyorum. Aile dizimi hakkında bilgi almak istiyorum.'))}" target="_blank" rel="noopener">{$_(WA_ICON)} WhatsApp'tan yazın</a>
         </div>
-        <div class="hero-social load-in" style="--d:420ms">
-          <span>Sosyal medyadan takip edin</span>
-          <a class="hs-ig" href="{$_(esc($s['social']['instagram']))}" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
-          <a class="hs-yt" href="{$_(esc($s['social']['youtube']))}" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8ZM9.8 15.1V8.9l5.4 3.1-5.4 3.1Z"/></svg></a>
+        <div class="btn-row hero-social load-in" style="--d:420ms">
+          <a class="btn btn-ig" href="{$_(esc($s['social']['instagram']))}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg> Instagram</a>
+          <a class="btn btn-yt" href="{$_(esc($s['social']['youtube']))}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8ZM9.8 15.1V8.9l5.4 3.1-5.4 3.1Z"/></svg> YouTube</a>
         </div>
         <ul class="hero-proof load-in" style="--d:480ms">
           <li><b><span data-count="210">210</span>{$sp}bin</b><span>Instagram'da takip eden</span></li>
