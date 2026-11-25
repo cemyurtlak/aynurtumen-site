@@ -40,6 +40,13 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 - Aylık tavan ASISTAN_AYLIK_TAVAN_USD (varsayılan 5$); Console tarafında da aylık 10$ sınır ve otomatik yükleme kapalı.
 - Test: okulun k12 Meta uygulaması + test numarası. Canlıda Aynur Hanım'ın kendi Meta Business hesabı ve numarası (coexistence) bağlanacak.
 
+## WhatsApp'tan etkinlik takvimi
+- `app/lib/etkinlikbot.php`. Yalnız ETKINLIK_YETKILI_NUMARA (yoksa ASISTAN_BILDIRIM_NUMARASI; şu an 905534534321) için çalışır. Google Takvim kullanılmıyor; kaynak `app/data/events.json` (deploy'da korunur, PANEL listesi).
+- Her mesaj komut sayılmaz: takvim kelimesi/tarih/saat/etkinlik adı ya da açık taslak varsa Claude niyeti sınıflar (degil/belirsiz/degisiklik/liste/iptal). "degil" → normal asistan akışı.
+- Önizlemeyi kod yazar, değişiklik yalnız "evet/onaylıyorum" ile uygulanır; onay anında yeniden doğrulanır. Taslak 2 saat sonra düşer. "hayır/iptal/vazgeç" iptal eder.
+- Her değişiklikten önce `app/data/yedek/*-etkinlik-wa-events.json`; "geri al" son değişikliği geri getirir. "etkinlikler" listeyi verir.
+- Başlık/açıklama/yer Claude ile en/ru/de çevrilip `app/locales/otomatik/*.json`'a yazılır (curated çeviri varsa o öncelikli).
+
 ## İletişim formu ve web sohbeti
 - Asistan ayarlıysa (`form_wa_on()`) iletişim formu ziyaretçinin WhatsApp'ını açmaz: mesaj `Asistan::team()` ile ASISTAN_BILDIRIM_NUMARASI'na gider (telefon zorunlu). Gönderilemezse eski wa.me yöntemine düşer.
 - `Asistan::team()`: önce düz mesaj (24 saat penceresi), olmazsa `WA_SABLON_BILDIRIM` şablonu ({{1}} başlık, {{2}} kişi, {{3}} ayrıntı). Şablon için Meta'da ödeme yöntemi gerekir.

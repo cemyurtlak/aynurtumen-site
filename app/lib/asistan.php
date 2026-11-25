@@ -122,8 +122,15 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
         $durum !== '' ? [['type' => 'text', 'text' => $durum]] : []),
       'tools' => [$tool], 'tool_choice' => ['type' => 'tool', 'name' => 'yanit'],
       'messages' => $msgs];
+    return self::parseOut(self::api($body));
+  }
+
+  // Claude Messages API çağrısı; harcamayı kaydeder, içerik bloklarını döndürür
+  static function api(array $body): array {
+    $key = env('ANTHROPIC_API_KEY');
+    if ($key === '') throw new RuntimeException('ANTHROPIC_API_KEY ayarlı değil');
     $ch = curl_init((env('ASISTAN_API_BASE') ?: 'https://api.anthropic.com') . '/v1/messages');
-    curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 40,
+    curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 50,
       CURLOPT_HTTPHEADER => ['content-type: application/json', 'x-api-key: ' . $key, 'anthropic-version: 2023-06-01'],
       CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE)]);
     $res = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE); $cerr = curl_error($ch); curl_close($ch);
@@ -131,7 +138,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     $j = json_decode((string)$res, true) ?: [];
     if ($code !== 200) throw new RuntimeException("Claude HTTP $code: " . mb_substr((string)($j['error']['message'] ?? $res), 0, 200));
     self::addUsage($j['usage'] ?? []);
-    return self::parseOut($j['content'] ?? []);
+    return $j['content'] ?? [];
   }
 
   // Model çıktısından {cevap, devret, ...} çıkarır; ham JSON asla kişiye gitmez.
@@ -306,15 +313,23 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
         $n = self::resolve($mm[2]);
         self::save($c); WhatsApp::sendText($m['from'], $n ? "✅ $n kişinin bekleyen işi kapatıldı." : 'Bu numarayla bekleyen bir iş bulamadım.'); return;
       }
-      if (preg_match('/durum|özet|ozet|atladı|atladi|bekleyen|yapılacak|yapilacak|ne var/u', $low)) {
+      if (!EtkinlikBot::acik() && preg_match('/durum|özet|ozet|atladı|atladi|bekleyen|yapılacak|yapilacak|ne var/u', $low)) {
         self::save($c); WhatsApp::sendText($m['from'], self::summary()); return;
       }
       if (($t['ack'] ?? '') !== date('Y-m-d')) {
         $t['ack'] = date('Y-m-d'); @file_put_contents($teamF, json_encode($t), LOCK_EX);
-        WhatsApp::sendText($m['from'], "✅ Bildirim penceresi açıldı: bugün size gelecek bildirimler 24 saat boyunca ücretsiz.\n\n• \"durum\" yazın → günün özeti ve bekleyen işler\n• \"bitti 4321\" yazın → o numarayla ilgili işi kapatır (son 4 hane yeter)");
+        WhatsApp::sendText($m['from'], "✅ Bildirim penceresi açıldı: bugün size gelecek bildirimler 24 saat boyunca ücretsiz.\n\n• \"durum\" yazın → günün özeti ve bekleyen işler\n• \"bitti 4321\" yazın → o numarayla ilgili işi kapatır (son 4 hane yeter)\n• \"etkinlikler\" yazın → sitedeki takvim; etkinlik eklemek/değiştirmek için normal cümleyle yazın, onayınız olmadan değişiklik yapılmaz");
       }
-      // sonra normal akış: test için asistan bu numaraya da müşteri gibi cevap verir
     }
+    // Yetkili numaradan etkinlik takvimi yönetimi (yalnızca takvimle ilgili mesajlarda devreye girer, onaysız değişiklik yapmaz)
+    if ($m['type'] === 'text' && EtkinlikBot::yetkili($m['from'])) {
+      $eb = EtkinlikBot::handle($m['from'], $m['text']);
+      if ($eb !== null) {
+        $c['msgs'][] = ['r' => 'a', 't' => $eb, 'ts' => $now];
+        self::save($c); WhatsApp::sendText($m['from'], $eb); return;
+      }
+    }
+    // sonra normal akış: test için asistan ekip numarasına da müşteri gibi cevap verir
     if ((int)($c['humanUntil'] ?? 0) > $now) { self::save($c); return; } // ekipten biri şu an yazışıyor, asistan araya girmez
 
     if (in_array($m['type'], ['image', 'document'], true)) {
