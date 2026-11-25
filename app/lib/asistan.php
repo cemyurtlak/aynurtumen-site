@@ -237,7 +237,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     $durum = "KANAL: Web sitesindeki sohbet penceresi (sayfa: $page, site dili: $lang). Kişi henüz bizimle WhatsApp'ta değil. "
       . 'Kişi kayıt, randevu, görüşme ya da kendisine dönülmesini isterse adını ve telefon (WhatsApp) numarasını nazikçe iste; ikisini aldığında devret (neden: kayıt ya da diğer) ve ekibin kısa süre içinde WhatsApp’tan döneceğini söyle. '
       . 'Kişi isterse doğrudan WhatsApp’tan da yazabilir: https://wa.me/' . settings()['phoneIntl'] . ' . İletişim bilgisi vermek istemezse ısrar etme. '
-      . 'Karşılama mesajı ("Merhaba, hoş geldiniz") pencerede zaten gösterildi; tekrar selamlama ya da kendini tanıtma, doğrudan konuya gir. Telefon numarası ve adı "ad" ve "telefon" alanlarına yaz (verilmediyse boş bırak). Bilgilendirme sayfası bağlantısında site dilini kullan.'
+      . 'Karşılama mesajı ("Merhaba, hoş geldiniz") pencerede zaten gösterildi; tekrar selamlama ya da kendini tanıtma, doğrudan konuya gir. Telefon numarası ve adı "ad" ve "telefon" alanlarına yaz (verilmediyse boş bırak). Numara olmadan ekip kişiye ulaşamaz; devretmen gerekiyorsa ve numara yoksa, ekibin dönebilmesi için WhatsApp numarasını nazikçe iste (vermezse doğrudan WhatsApp’tan yazabileceğini hatırlat). Bilgilendirme sayfası bağlantısında site dilini kullan.'
       . ($c['notified'] ? ' Bu kişinin bilgileri ekibe zaten iletildi; tekrar isteme.' : '');
     try {
       $hist = [];
@@ -257,9 +257,15 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     foreach (['ad', 'telefon'] as $k) if (!empty($o[$k])) $c[$k] = mb_substr(trim((string)$o[$k]), 0, 80);
     if (!empty($o['ozet'])) $c['ozet'] = mb_substr(trim((string)$o['ozet']), 0, 600);
     $why = !empty($o['devret']) ? (string)($o['neden'] ?: 'diğer') : '';
-    $key = $why . '|' . $c['telefon'];
-    if ($why !== '' && ($key !== $c['notified'] || $why === 'acil')) {
-      $tel = preg_replace('/\D/', '', $c['telefon']);
+    // Telefon numarası olmadan ekibe bildirim gitmez (kişiye ulaşılamaz). Devir isteği beklemede tutulur;
+    // numara sonradan gelince bildirim o zaman gönderilir.
+    if ($why !== '') $c['bekleyen'] = $why;
+    $tel = preg_replace('/\D/', '', $c['telefon']);
+    $telOk = strlen($tel) >= 10;
+    if ($why === '' && $telOk && !empty($c['bekleyen'])) $why = $c['bekleyen'];
+    $key = $why . '|' . $tel;
+    if ($why !== '' && $telOk && ($key !== $c['notified'] || $why === 'acil')) {
+      $c['bekleyen'] = '';
       if (strlen($tel) === 10 && $tel[0] === '5') $tel = '90' . $tel; elseif (strlen($tel) === 11 && $tel[0] === '0') $tel = '9' . $tel;
       $label = ['kayit' => 'Kayıt isteği', 'kayıt' => 'Kayıt isteği', 'kisisel' => 'Kişisel konu', 'kişisel' => 'Kişisel konu', 'acil' => '⚠️ ACİL', 'güncelleme' => 'Tercih değişti'][$why] ?? 'Dönüş bekliyor';
       self::team("🔔 $label (web sohbeti)", ($c['ad'] ?: 'İsim vermedi') . ' · ' . ($c['telefon'] ?: 'telefon vermedi'),
