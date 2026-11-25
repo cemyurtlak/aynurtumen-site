@@ -57,6 +57,10 @@ function layout(array $o): string {
   $clientJs = $client && $L !== 'tr' ? '<script>window.I18N=' . str_replace('<', '\\u003c', js_json((object)I18n::clientDict($L))) . '</script><script src="/js/i18n.js?v=' . $V . '" defer></script>' : '';
   $canon = esc($site . I18n::prefix($self, $L));
   $img = esc("$site/images/paylasim-$L.jpg?v=3");
+  // WhatsApp bağlantı önizlemesinde küçük kare kesit gösterir: ona kare görsel ver
+  $wa = stripos((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 'whatsapp') !== false;
+  $ogImg = $wa ? esc("$site/images/paylasim-kare.jpg?v=1") : $img;
+  $ogW = $wa ? 600 : 1200; $ogH = $wa ? 600 : 630;
   return <<<HTML
 <!doctype html>
 <html lang="$L">
@@ -74,9 +78,9 @@ $robots$alt
 $ogAlt
 <meta property="og:site_name" content="Aynur Tümen">
 <meta property="og:url" content="$canon">
-<meta property="og:image" content="$img">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image" content="$ogImg">
+<meta property="og:image:width" content="$ogW">
+<meta property="og:image:height" content="$ogH">
 <meta property="og:image:alt" content="{$_(esc('Aynur Tümen · ' . t('Aile Dizimi ve Konstelasyon Çalışmaları')))}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{$_(esc($fullTitle))}">
