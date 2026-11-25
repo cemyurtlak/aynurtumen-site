@@ -82,7 +82,11 @@ final class EtkinlikBot {
     if ($niyet === 'degil') return null; // takvimle ilgisi yok: normal asistan cevaplasın (açık taslak korunur)
     $s['konusma'][] = ['r' => 'u', 't' => mb_substr($text, 0, 800)];
 
-    if ($niyet === 'liste') { self::save($s); return self::liste(); }
+    if ($niyet === 'liste') {
+      self::save($s);
+      $h = !empty($o['hedef_id']) ? self::bul((string)$o['hedef_id']) : null;
+      return $h ? implode("\n", self::satirlar($h)) . (!empty($h['ornek']) ? "\n(örnek etkinlik)" : '') : self::liste();
+    }
     if ($niyet === 'iptal') { self::save(self::reset($s)); return '👍 Tamam, takvimde hiçbir değişiklik yapılmadı.'; }
 
     $cevap = trim((string)($o['cevap'] ?? ''));
@@ -119,7 +123,7 @@ final class EtkinlikBot {
     if (Asistan::overBudget()) throw new RuntimeException('aylık yapay zekâ bütçesi doldu');
     $ev = [];
     foreach (Store::read('events', []) as $e) $ev[] = ['id' => $e['id'], 'baslik' => $e['title'], 'baslangic' => $e['start'], 'sure_dk' => $e['duration'],
-      'tur' => $e['type'], 'yer' => $e['location'], 'kontenjan' => $e['capacity'], 'ucret' => $e['price'], 'ornek' => !empty($e['ornek'])];
+      'tur' => $e['type'], 'yer' => $e['location'], 'kontenjan' => $e['capacity'], 'ucret' => $e['price'], 'aciklama' => $e['description'] ?? '', 'ornek' => !empty($e['ornek'])];
     $bugun = date('Y-m-d') . ' ' . self::GUNLER[(int)date('w')] . ', saat ' . date('H:i');
     $sys = "Aynur Tümen'in web sitesindeki etkinlik takvimini WhatsApp üzerinden yöneten yardımcısın. Mesajı yazan kişi ekipten yetkili biri. "
       . "Görevin mesajı anlamak ve sonucu 'takvim' aracıyla bildirmek. Takvimde hiçbir şeyi kendin değiştirmezsin; değişiklik ancak kişi sonradan 'evet' diyerek onaylarsa yapılır.\n"
@@ -128,7 +132,7 @@ final class EtkinlikBot {
       . "- degil: Mesaj takvimi değiştirmekle ilgili değil (sohbet, soru, test, müşteri gibi yazma, başka bir iş). Şüphedeysen ve kişi değişiklik istediğini söylemiyorsa 'belirsiz' seç.\n"
       . "- belirsiz: Etkinlik/takvim geçiyor ama değişiklik isteyip istemediği net değil. 'cevap' alanında kibarca ne yapmak istediğini sor (ekleme mi, değişiklik mi, silme mi).\n"
       . "- degisiklik: Açıkça ekleme, güncelleme (saat, tarih, ücret, yer, kontenjan, açıklama vb.) ya da silme istiyor. Açık bir taslak varsa ve kişi ona bilgi ekliyor/düzeltiyorsa da degisiklik.\n"
-      . "- liste: Mevcut etkinlikleri görmek istiyor.\n"
+      . "- liste: Mevcut etkinlikleri ya da tek bir etkinliğin ayrıntısını görmek istiyor (tek etkinlikse hedef_id ver).\n"
       . "- iptal: Vazgeçtiğini söylüyor.\n\n"
       . "KURALLAR:\n"
       . "1. Yalnızca kişinin yazdığını kaydet; hiçbir alanı tahminle doldurma. Bilmediğin alanı boş bırak.\n"
@@ -137,14 +141,14 @@ final class EtkinlikBot {
       . "4. Tarih ve saati kişinin yazdığı şekilde çöz: 'yarın', 'cumartesi', '14'ü' gibi ifadeleri bugüne göre YYYY-MM-DD'ye çevir. Yıl verilmemişse en yakın gelecek tarihi seç. Saati HH:MM yaz.\n"
       . "4b. Kişi hem gün adı hem tarih yazdıysa ve bunlar uyuşmuyorsa (örneğin 20 Aralık 2026 Pazar'a denk gelirken 'cumartesi' demişse) tarihi alanlara yazma; 'cevap' alanında hangisinin doğru olduğunu sor.\n"
       . "5. Ücret TL olarak tam sayı; 'ücretsiz' ise 0. Süre dakika olarak (2 saat = 120, tam gün kamp için gün sayısı × 1440).\n"
-      . "6. Kişi 'açıklama' vermezse kısa, sade bir Türkçe açıklama önerebilirsin ama bunu yalnızca 'cevap' içinde öner; 'aciklama' alanına kişi onaylamadıkça yazma.\n"
+      . "6. AÇIKLAMA: Yeni etkinlikte açıklama zorunlu sayılır. Kişi açıklama yazmadıysa, diğer bilgiler tamamlandığında (ya da eksikleri sorarken) başlığa, türe ve mevcut etkinliklerin üslubuna uygun 1-2 cümlelik sıcak bir Türkçe açıklama öner; 'cevap' içinde tırnak içinde göster ve 'Bunu kullanayım mı, yoksa kendiniz mi yazmak istersiniz?' diye sor. Öneriyi 'aciklama' alanına YALNIZCA kişi kabul ederse (evet, olur, bunu kullan, güzel vb.) yaz; kişi değiştirirse onun metnini yaz. Kişi açıklama istemediğini söylerse 'aciklama_yok': true ver. Mevcut bir etkinliğin açıklamasını değiştirmek ya da güzelleştirmek isterse de aynı şekilde öneri sun ve onay bekle. Açıklamada fiyat, tarih ya da söz uydurma.\n"
       . "7. 'cevap' alanı Türkçe, sıcak ve kısa olsun. Değişikliğin uygulandığını asla söyleme; onay özetini sistem kendisi gösterecek.\n\n"
       . "MEVCUT ETKİNLİKLER (JSON; 'ornek': true olanlar sitedeki örnek/deneme etkinlikleridir):\n" . json_encode($ev, JSON_UNESCAPED_UNICODE) . "\n\n"
       . "AÇIK TASLAK (kişiyle üzerinde çalışılan, henüz uygulanmamış değişiklik): " . ($s['taslak'] ? json_encode($s['taslak'], JSON_UNESCAPED_UNICODE) : 'yok');
     $alan = ['type' => 'object', 'properties' => [
       'baslik' => ['type' => 'string'], 'tarih' => ['type' => 'string', 'description' => 'YYYY-MM-DD'], 'saat' => ['type' => 'string', 'description' => 'HH:MM'],
       'sure_dk' => ['type' => 'integer'], 'tur' => ['type' => 'string', 'enum' => ['online', 'yuzyuze', 'kamp']], 'yer' => ['type' => 'string'],
-      'kontenjan' => ['type' => 'integer'], 'ucret' => ['type' => 'integer'], 'aciklama' => ['type' => 'string'], 'kayit_acik' => ['type' => 'boolean']]];
+      'kontenjan' => ['type' => 'integer'], 'ucret' => ['type' => 'integer'], 'aciklama' => ['type' => 'string'], 'aciklama_yok' => ['type' => 'boolean', 'description' => 'Kişi açıklama istemiyorsa true'], 'kayit_acik' => ['type' => 'boolean']]];
     $tool = ['name' => 'takvim', 'description' => 'Mesajın takvimle ilgili anlamını bildirir.', 'input_schema' => ['type' => 'object', 'required' => ['niyet'], 'properties' => [
       'niyet' => ['type' => 'string', 'enum' => ['degil', 'belirsiz', 'degisiklik', 'liste', 'iptal']],
       'islem' => ['type' => 'string', 'enum' => ['ekle', 'guncelle', 'sil']],
@@ -199,6 +203,7 @@ final class EtkinlikBot {
       foreach (['baslik' => 'başlık', 'tarih' => 'tarih', 'saat' => 'saat', 'tur' => 'tür (online / yüz yüze / kamp)', 'sure_dk' => 'süre', 'ucret' => 'ücret (ücretsizse "ücretsiz")'] as $k => $ad)
         if (!isset($a[$k]) || $a[$k] === '') $eksik[] = $ad;
       if (in_array($a['tur'] ?? '', ['yuzyuze', 'kamp'], true) && trim((string)($a['yer'] ?? '')) === '') $eksik[] = 'yer (şehir ya da adres)';
+      if (trim((string)($a['aciklama'] ?? '')) === '' && empty($a['aciklama_yok'])) $eksik[] = 'açıklama';
     }
     if (isset($a['tarih']) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$a['tarih'])) $hata[] = 'Tarih anlaşılamadı.';
     if (isset($a['saat']) && !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', (string)$a['saat'])) $hata[] = 'Saat anlaşılamadı (ör. 14:00).';
@@ -252,6 +257,7 @@ final class EtkinlikBot {
     if (isset($a['kontenjan'])) $e['capacity'] = (int)$a['kontenjan'];
     if (isset($a['ucret'])) $e['price'] = (int)$a['ucret'];
     if (isset($a['aciklama'])) $e['description'] = (string)$a['aciklama'];
+    unset($e['aciklama_yok']);
     if (isset($a['kayit_acik'])) $e['registration'] = (bool)$a['kayit_acik'];
     unset($e['ornek']);
     return $e;
@@ -264,7 +270,7 @@ final class EtkinlikBot {
     }
     $yeni = self::sonuc($t);
     if ($t['islem'] === 'ekle') {
-      $yok = trim((string)$yeni['description']) === '' ? "\n\n(Açıklama yok; isterseniz açıklama da yazabilirsiniz.)" : '';
+      $yok = trim((string)$yeni['description']) === '' ? "\n\n(Açıklama olmadan eklenecek.)" : '';
       return "➕ Sitedeki takvime şu etkinliği EKLEYECEĞİM:\n\n" . implode("\n", self::satirlar($yeni)) . $yok
         . "\n\nBaşlık ve açıklama İngilizce, Rusça ve Almancaya otomatik çevrilecek.\nOnaylıyor musunuz? (evet / hayır)";
     }
@@ -285,12 +291,28 @@ final class EtkinlikBot {
     $now = time();
     $l = array_values(array_filter(Store::read('events', []), fn($e) => strtotime($e['start']) > $now));
     usort($l, fn($a, $b) => strtotime($a['start']) <=> strtotime($b['start']));
-    if (!$l) return 'Sitede yaklaşan etkinlik yok. Eklemek için örneğin şöyle yazabilirsiniz: "20 Aralık Cumartesi 11:00, online grup aile dizimi ekle"';
-    $out = ['🗓 Sitedeki yaklaşan etkinlikler:', ''];
-    foreach ($l as $i => $e) $out[] = ($i + 1) . '. ' . $e['title'] . ' — ' . self::tarihYaz($e['start']) . ' · ' . (self::TURLER[$e['type']] ?? $e['type']) . ' · ' . self::ucret((int)$e['price']) . (!empty($e['ornek']) ? ' (örnek)' : '');
-    $out[] = ''; $out[] = 'Değişiklik için normal cümleyle yazabilirsiniz; her değişiklikten önce onayınızı alırım.';
-    return implode("\n", $out);
+    if (!$l) return 'Sitede yaklaşan etkinlik yok. Eklemek için örneğin şöyle yazabilirsiniz: "20 Aralık Pazar 11:00, online grup aile dizimi ekle"';
+    $parca = [];
+    foreach ($l as $i => $e) {
+      $sat = self::satirlar($e);
+      $sat[0] = '*' . ($i + 1) . '. ' . $e['title'] . '*' . (!empty($e['ornek']) ? ' (örnek)' : '');
+      $parca[] = implode("\n", $sat);
+    }
+    $out = "🗓 Sitedeki yaklaşan etkinlikler:\n\n" . implode("\n\n", $parca)
+      . "\n\nDeğiştirmek istediğinizi normal cümleyle yazabilirsiniz (ör. \"Dolunay çalışmasının açıklamasını değiştir\"); her değişiklikten önce onayınızı alırım.";
+    if (mb_strlen($out) > 3900) { // WhatsApp mesaj sınırı: açıklamaları kısalt
+      $parca = [];
+      foreach ($l as $i => $e) {
+        $d = trim((string)$e['description']);
+        $parca[] = '*' . ($i + 1) . '. ' . $e['title'] . '*' . (!empty($e['ornek']) ? ' (örnek)' : '') . "\n🗓 " . self::tarihYaz($e['start']) . ' · ' . (self::TURLER[$e['type']] ?? $e['type']) . ' · ' . self::ucret((int)$e['price'])
+          . ($d !== '' ? "\n📝 " . (mb_strlen($d) > 140 ? mb_substr($d, 0, 137) . '…' : $d) : '');
+      }
+      $out = "🗓 Sitedeki yaklaşan etkinlikler:\n\n" . implode("\n\n", $parca) . "\n\nBir etkinliğin tüm ayrıntısı için adını yazıp \"ayrıntı\" demeniz yeterli.";
+      if (mb_strlen($out) > 3900) $out = mb_substr($out, 0, 3880) . '…';
+    }
+    return $out;
   }
+
 
   /* ---------- uygulama ---------- */
   private static function yedekle(): string {
