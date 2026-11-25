@@ -18,6 +18,8 @@ final class Mailer {
     $encName = '=?UTF-8?B?' . base64_encode($name) . '?=';
     $encSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
     $body = chunk_split(base64_encode($html));
+    // Ekibe (ADMIN_EMAIL) giden her e-postanın gizli kopyası ADMIN_BCC adresine de gider
+    $bcc = strcasecmp($to, env('ADMIN_EMAIL')) === 0 ? array_values(array_filter(array_map('trim', explode(',', env('ADMIN_BCC'))))) : [];
     if (env('SMTP_PASS') !== '') {
       $ok = self::smtp($from, $to, [
         'Date: ' . date('r'),
@@ -29,18 +31,18 @@ final class Mailer {
         'MIME-Version: 1.0',
         'Content-Type: text/html; charset=UTF-8',
         'Content-Transfer-Encoding: base64',
-      ], $body);
+      ], $body, $bcc);
       if ($ok) return true;
       error_log("[e-posta] SMTP başarısız, PHP mail deneniyor: $to · $subject");
     }
-    $headers = implode("\r\n", ['MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', "From: $encName <$from>", "Reply-To: $from"]);
+    $headers = implode("\r\n", ['MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', "From: $encName <$from>", "Reply-To: $from"] + ($bcc ? [6 => 'Bcc: ' . implode(', ', $bcc)] : []));
     $ok = @mail($to, $encSubject, $body, $headers, "-f$from");
     if (!$ok) error_log("[e-posta gönderilemedi] $to · $subject");
     return $ok;
   }
 
   // Küçük SMTP istemcisi: 465 (SSL) ya da 587 (STARTTLS), AUTH LOGIN
-  private static function smtp(string $from, string $to, array $headers, string $body): bool {
+  private static function smtp(string $from, string $to, array $headers, string $body, array $bcc = []): bool {
     $host = env('SMTP_HOST') ?: 'smtp.hostinger.com';
     $port = (int)(env('SMTP_PORT') ?: '465');
     $user = env('SMTP_USER') ?: $from;
@@ -59,7 +61,9 @@ final class Mailer {
     $ok = $cmd('', [220]) && $cmd($ehlo, [250]);
     if ($ok && $port !== 465) $ok = $cmd('STARTTLS', [220]) && stream_socket_enable_crypto($s, true, STREAM_CRYPTO_METHOD_TLS_CLIENT) && $cmd($ehlo, [250]);
     $ok = $ok && $cmd('AUTH LOGIN', [334]) && $cmd(base64_encode($user), [334]) && $cmd(base64_encode(env('SMTP_PASS')), [235])
-      && $cmd("MAIL FROM:<$from>", [250]) && $cmd("RCPT TO:<$to>", [250, 251]) && $cmd('DATA', [354]);
+      && $cmd("MAIL FROM:<$from>", [250]) && $cmd("RCPT TO:<$to>", [250, 251]);
+    foreach ($bcc as $b) if ($ok && !$cmd("RCPT TO:<$b>", [250, 251])) error_log("[e-posta] gizli kopya alıcısı reddedildi: $b"); // Bcc başlığa yazılmaz
+    $ok = $ok && $cmd('DATA', [354]);
     if ($ok) {
       $data = implode("\r\n", $headers) . "\r\n\r\n" . preg_replace('/^\./m', '..', str_replace(["\r\n", "\n"], ["\n", "\r\n"], $body));
       $ok = $cmd(rtrim($data, "\r\n") . "\r\n.", [250]);

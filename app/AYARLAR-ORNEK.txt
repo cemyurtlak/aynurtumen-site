@@ -17,6 +17,8 @@ SMTP_USER=info@aynurtumen.com.tr
 SMTP_PASS=
 # Yeni randevu talepleri ve iletişim formu mesajları buraya da gelir
 ADMIN_EMAIL=aynurtmn@gmail.com
+# Ekibe giden e-postaların gizli kopyası (virgülle birden çok adres)
+ADMIN_BCC=
 
 # Google Takvim ve DeepL (yönetim panelinden de girilebilir; BENI-OKU.md bölüm 9)
 GOOGLE_CALENDAR_ICS_URL=
