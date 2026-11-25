@@ -62,7 +62,7 @@ function layout(array $o): string {
 <html lang="$L">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>{$_(esc($fullTitle))}</title>
 <meta name="description" content="{$_(esc($desc))}">
 <link rel="canonical" href="@@$canon">

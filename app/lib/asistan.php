@@ -95,8 +95,7 @@ KURALLAR
 12. Doğal konuş: kalıp cümleler ve her mesajda kendini tanıtma yok; ama sorulursa dijital asistan olduğunu her zaman dürüstçe söyle.
 
 ÇIKTI
-Yalnızca şu biçimde tek bir JSON nesnesi döndür, başka hiçbir şey yazma:
-{"cevap": "kişiye gidecek mesaj", "devret": false, "neden": "", "dil": "tr", "ozet": "ekip için kısa not", "ad": "", "telefon": ""}
+Cevabını her zaman "yanit" aracıyla ver (alanlar: cevap, devret, neden, dil, ozet, ad, telefon). "cevap" alanına yalnızca kişiye gidecek düz metni yaz; içine JSON, alan adı ya da tırnaklı yapı koyma.
 "ozet": Konuşmanın tamamından, yalnızca kişinin kendi söylediklerine dayanan 1-3 cümlelik not: ilgilendiği çalışma, tercihleri (online/yüz yüze, gün/saat, dil), sorduğu ve takıldığı noktalar, verdiği iletişim bilgisi. Kişilik, ruh hâli ya da psikolojik yorum ekleme; kişinin anlattığı özel/aile konusunu ayrıntılandırma ("kişisel bir konu paylaştı" demen yeterli).
 "devret" true ise "neden" şunlardan biri olsun: kayıt, dekont, kişisel, acil, bilinmiyor, güncelleme, diğer.
 
@@ -108,9 +107,20 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
   static function claude(array $msgs, string $durum = ''): array {
     $key = env('ANTHROPIC_API_KEY');
     if ($key === '') throw new RuntimeException('ANTHROPIC_API_KEY ayarlı değil');
-    $body = ['model' => env('ASISTAN_MODEL') ?: 'claude-haiku-5-5', 'max_tokens' => 700,
+    // Cevap her zaman "yanit" aracıyla, API'nin doğruladığı yapılandırılmış veri olarak gelir;
+    // böylece ham JSON metni hiçbir zaman kişiye gösterilmez.
+    $tool = ['name' => 'yanit', 'description' => 'Kişiye gidecek mesajı ve ekip notunu kaydeder.',
+      'input_schema' => ['type' => 'object', 'required' => ['cevap', 'devret'], 'properties' => [
+        'cevap' => ['type' => 'string', 'description' => 'Kişiye gidecek mesaj (düz metin)'],
+        'devret' => ['type' => 'boolean'],
+        'neden' => ['type' => 'string', 'enum' => ['', 'kayit', 'kayıt', 'dekont', 'kişisel', 'acil', 'bilinmiyor', 'güncelleme', 'diğer']],
+        'dil' => ['type' => 'string'],
+        'ozet' => ['type' => 'string', 'description' => 'Ekip için 1-3 cümlelik kısa not'],
+        'ad' => ['type' => 'string'], 'telefon' => ['type' => 'string']]]];
+    $body = ['model' => env('ASISTAN_MODEL') ?: 'claude-haiku-5-5', 'max_tokens' => 1500,
       'system' => array_merge([['type' => 'text', 'text' => self::system(), 'cache_control' => ['type' => 'ephemeral']]],
         $durum !== '' ? [['type' => 'text', 'text' => $durum]] : []),
+      'tools' => [$tool], 'tool_choice' => ['type' => 'tool', 'name' => 'yanit'],
       'messages' => $msgs];
     $ch = curl_init((env('ASISTAN_API_BASE') ?: 'https://api.anthropic.com') . '/v1/messages');
     curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 40,
@@ -121,11 +131,30 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     $j = json_decode((string)$res, true) ?: [];
     if ($code !== 200) throw new RuntimeException("Claude HTTP $code: " . mb_substr((string)($j['error']['message'] ?? $res), 0, 200));
     self::addUsage($j['usage'] ?? []);
-    $t = ''; foreach ($j['content'] ?? [] as $p) if (($p['type'] ?? '') === 'text') $t .= $p['text'];
-    $t = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', trim($t)));
-    if (preg_match('/\{.*\}/s', $t, $m)) $o = json_decode($m[0], true);
-    if (empty($o) || !isset($o['cevap'])) $o = ['cevap' => $t, 'devret' => false, 'neden' => '', 'dil' => 'tr'];
-    return $o;
+    return self::parseOut($j['content'] ?? []);
+  }
+
+  // Model çıktısından {cevap, devret, ...} çıkarır; ham JSON asla kişiye gitmez.
+  static function parseOut(array $content): array {
+    $o = null; $t = '';
+    foreach ($content as $p) {
+      if (($p['type'] ?? '') === 'tool_use' && is_array($p['input'] ?? null)) $o = $p['input'];
+      if (($p['type'] ?? '') === 'text') $t .= $p['text'];
+    }
+    if (!$o) {
+      $t = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', trim($t)));
+      if (preg_match('/\{.*\}/s', $t, $m)) $o = json_decode($m[0], true);
+      // Yarım kalmış JSON: en azından "cevap" alanını kurtar
+      if (empty($o['cevap']) && preg_match('/"cevap"\s*:\s*"((?:[^"\\\\]|\\\\.)*)"/su', $t, $m)) {
+        $o = ['cevap' => json_decode('"' . $m[1] . '"') ?? stripcslashes($m[1])];
+      }
+      if (empty($o['cevap']) && $t !== '' && !str_contains($t, '"cevap"')) $o = ['cevap' => $t];
+    }
+    if (empty($o['cevap']) || !is_string($o['cevap'])) {
+      $o = ['cevap' => 'Mesajınızı aldık, teşekkür ederiz 🌸 Ekibimiz en kısa sürede size dönecek.', 'devret' => true, 'neden' => 'bilinmiyor'];
+    }
+    if (($o['neden'] ?? '') === 'kayit') $o['neden'] = 'kayıt';
+    return $o + ['devret' => false, 'neden' => '', 'dil' => 'tr', 'ozet' => '', 'ad' => '', 'telefon' => ''];
   }
 
   // Konuşma geçmişini Claude'un istediği sıraya çevirir (kullanıcı/asistan dönüşümlü, ilk mesaj kullanıcıdan)
@@ -208,7 +237,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
     $durum = "KANAL: Web sitesindeki sohbet penceresi (sayfa: $page, site dili: $lang). Kişi henüz bizimle WhatsApp'ta değil. "
       . 'Kişi kayıt, randevu, görüşme ya da kendisine dönülmesini isterse adını ve telefon (WhatsApp) numarasını nazikçe iste; ikisini aldığında devret (neden: kayıt ya da diğer) ve ekibin kısa süre içinde WhatsApp’tan döneceğini söyle. '
       . 'Kişi isterse doğrudan WhatsApp’tan da yazabilir: https://wa.me/' . settings()['phoneIntl'] . ' . İletişim bilgisi vermek istemezse ısrar etme. '
-      . 'Telefon numarası ve adı JSON\'da "ad" ve "telefon" alanlarına yaz (verilmediyse boş bırak). Bilgilendirme sayfası bağlantısında site dilini kullan.'
+      . 'Karşılama mesajı ("Merhaba, hoş geldiniz") pencerede zaten gösterildi; tekrar selamlama ya da kendini tanıtma, doğrudan konuya gir. Telefon numarası ve adı "ad" ve "telefon" alanlarına yaz (verilmediyse boş bırak). Bilgilendirme sayfası bağlantısında site dilini kullan.'
       . ($c['notified'] ? ' Bu kişinin bilgileri ekibe zaten iletildi; tekrar isteme.' : '');
     try {
       $hist = [];

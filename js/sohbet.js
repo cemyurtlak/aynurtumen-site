@@ -27,10 +27,23 @@
   };
   history.forEach(([w, t]) => add(w, t, false));
 
+  // Telefonda klavye açılınca pencere görünen alana sığsın (başlık yukarıda kaybolmasın)
+  const vv = window.visualViewport;
+  const fit = () => {
+    if (!vv || panel.hidden || window.innerWidth > 640) { panel.style.height = ''; panel.style.top = ''; panel.style.bottom = ''; return; }
+    panel.style.top = vv.offsetTop + 'px';
+    panel.style.bottom = 'auto';
+    panel.style.height = vv.height + 'px';
+    log.scrollTop = log.scrollHeight;
+  };
+  if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+
   const setOpen = on => {
     panel.hidden = !on; open.setAttribute('aria-expanded', on ? 'true' : 'false');
     root.classList.toggle('is-open', on);
     store('sohbet-acik', on ? '1' : '0');
+    document.documentElement.classList.toggle('chat-open', on && window.innerWidth <= 640);
+    fit();
     if (on) { log.scrollTop = log.scrollHeight; setTimeout(() => input.focus(), 50); }
   };
   open.addEventListener('click', () => setOpen(panel.hidden));
