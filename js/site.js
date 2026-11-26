@@ -14,8 +14,9 @@
     burger.setAttribute('aria-expanded', open);
     document.body.style.overflow = open ? 'hidden' : '';
     top?.classList.toggle('menu-open', open);
+    document.documentElement.classList.toggle('menu-acik', open);
   });
-  nav?.addEventListener('click', e => { if (e.target.closest('a')) { nav.classList.remove('open'); burger.setAttribute('aria-expanded', false); document.body.style.overflow = ''; top?.classList.remove('menu-open'); } });
+  nav?.addEventListener('click', e => { if (e.target.closest('a')) { nav.classList.remove('open'); burger.setAttribute('aria-expanded', false); document.body.style.overflow = ''; top?.classList.remove('menu-open'); document.documentElement.classList.remove('menu-acik'); } });
 
   // Dil seçici
   const lang = document.querySelector('[data-lang]');
