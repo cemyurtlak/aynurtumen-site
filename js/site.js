@@ -13,8 +13,9 @@
     const open = nav.classList.toggle('open');
     burger.setAttribute('aria-expanded', open);
     document.body.style.overflow = open ? 'hidden' : '';
+    top?.classList.toggle('menu-open', open);
   });
-  nav?.addEventListener('click', e => { if (e.target.closest('a')) { nav.classList.remove('open'); burger.setAttribute('aria-expanded', false); document.body.style.overflow = ''; } });
+  nav?.addEventListener('click', e => { if (e.target.closest('a')) { nav.classList.remove('open'); burger.setAttribute('aria-expanded', false); document.body.style.overflow = ''; top?.classList.remove('menu-open'); } });
 
   // Dil seçici
   const lang = document.querySelector('[data-lang]');

@@ -98,6 +98,8 @@ section{padding:clamp(3rem,6vw,5rem) 0;position:relative}
   .nav a{font-family:var(--serif);font-size:1.8rem;font-weight:400}
   .nav .nav-cta{font-family:var(--sans);font-size:1rem;margin-top:1rem}
   .nav.open{opacity:1;visibility:visible}
+  /* Açık menü tam ekran kalsın: üst çubuğun bulanıklık efekti fixed menüyü kendi yüksekliğine hapsediyordu */
+  .topbar.menu-open,.topbar:has(.nav.open){backdrop-filter:none;-webkit-backdrop-filter:none}
 }
 
 /* ---------- Kutup ışığı arka planı ---------- */
