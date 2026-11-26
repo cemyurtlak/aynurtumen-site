@@ -501,7 +501,9 @@ HTML;
 function page_yazilar(array $posts): string {
   $_ = fn($x) => $x;
   $cats = array_values(array_unique(array_filter(array_map(fn($p) => $p['category'] ?? '', $posts))));
-  $note = I18n::lang() !== 'tr' ? '<p class="lang-note reveal">Yazılar Türkçe olarak yayımlanmaktadır.</p>' : '';
+  // Not yalnız bu dilde çevirisi olmayan yazı varsa gösterilir
+  $eksik = I18n::lang() !== 'tr' && array_filter($posts, fn($p) => !YaziCeviri::get($p, I18n::lang()));
+  $note = $eksik ? '<p class="lang-note reveal">Yazılar Türkçe olarak yayımlanmaktadır.</p>' : '';
   $catBtns = join_map($cats, fn($c) => '<button data-filter="' . esc($c) . '" aria-pressed="false">' . esc($c) . '</button>');
   $q = trim((string)($_GET['q'] ?? ''));
   $found = $q !== '' ? array_flip(search_posts($posts, $q, I18n::lang())) : null;
@@ -517,7 +519,7 @@ function page_yazilar(array $posts): string {
       <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="yazi-ara" type="search" name="q" value="{$_(esc($q))}" placeholder="Yazılarda ara: baba, para, ilişki…" autocomplete="off" enterkeyhint="search" data-post-search>
     </form>
-    <div class="filters reveal" role="group" aria-label="Kategori"><button data-filter="all" aria-pressed="true">Tümü</button>{$_(OFF)}$catBtns{$_(ON)}</div>
+    <div class="filters reveal" role="group" aria-label="Kategori"><button data-filter="all" aria-pressed="true">Tümü</button>$catBtns</div>
     <p class="post-count" aria-live="polite"><span data-post-count data-total="$total">$shown yazı</span></p>
     <p class="post-empty" data-post-empty{$_($shown ? ' hidden' : '')}>Bu kelimeyle ilgili yazı bulunamadı.</p>
     <div class="post-grid">$grid</div>
