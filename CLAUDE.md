@@ -40,6 +40,9 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 - Aylık tavan ASISTAN_AYLIK_TAVAN_USD (varsayılan 5$); Console tarafında da aylık 10$ sınır ve otomatik yükleme kapalı.
 - Test: okulun k12 Meta uygulaması + test numarası. Canlıda Aynur Hanım'ın kendi Meta Business hesabı ve numarası (coexistence) bağlanacak.
 
+## Ekip numarası
+- Ekip (bildirim) numarası: "aç" / "." / "etkinleştir" yazınca yalnız 24 saatlik bildirim penceresi açılır, cevap gelmez, yapay zekâ çalışmaz. Ekip numarasının diğer mesajlarına müşteri asistanı cevap vermez; denemek için mesajın başına "test" yazılır. "durum", "bitti 4321", "etkinlikler" komutları aynen çalışır.
+
 ## WhatsApp'tan etkinlik takvimi
 - `app/lib/etkinlikbot.php`. Yalnız ETKINLIK_YETKILI_NUMARA (yoksa ASISTAN_BILDIRIM_NUMARASI; şu an 905534534321) için çalışır. Google Takvim kullanılmıyor; kaynak `app/data/events.json` (deploy'da korunur, PANEL listesi).
 - Her mesaj komut sayılmaz: takvim kelimesi/tarih/saat/etkinlik adı ya da açık taslak varsa Claude niyeti sınıflar (degil/belirsiz/degisiklik/liste/iptal). "degil" → normal asistan akışı.

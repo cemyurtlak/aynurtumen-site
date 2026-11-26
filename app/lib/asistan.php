@@ -309,6 +309,11 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       $low = mb_strtolower($m['text']);
       $teamF = self::dir() . '/_ekip.json';
       $t = is_file($teamF) ? (json_decode((string)file_get_contents($teamF), true) ?: []) : [];
+      // Sessiz pencere açma kodu: yalnız 24 saatlik ücretsiz bildirim penceresini açar; cevap yok, yapay zekâ çalışmaz
+      if (preg_match('/^\s*(\.|aç|ac|etkinleştir|etkinlestir)\s*[.!]*\s*$/u', $low)) {
+        $t['ack'] = date('Y-m-d'); @file_put_contents($teamF, json_encode($t), LOCK_EX);
+        self::save($c); return;
+      }
       if (preg_match('/^\s*(bitti|tamam|tamamlandı)\s+\+?(\d{4,})/u', $low, $mm)) {
         $n = self::resolve($mm[2]);
         self::save($c); WhatsApp::sendText($m['from'], $n ? "✅ $n kişinin bekleyen işi kapatıldı." : 'Bu numarayla bekleyen bir iş bulamadım.'); return;
@@ -318,7 +323,7 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
       }
       if (($t['ack'] ?? '') !== date('Y-m-d')) {
         $t['ack'] = date('Y-m-d'); @file_put_contents($teamF, json_encode($t), LOCK_EX);
-        WhatsApp::sendText($m['from'], "✅ Bildirim penceresi açıldı: bugün size gelecek bildirimler 24 saat boyunca ücretsiz.\n\n• \"durum\" yazın → günün özeti ve bekleyen işler\n• \"bitti 4321\" yazın → o numarayla ilgili işi kapatır (son 4 hane yeter)\n• \"etkinlikler\" yazın → sitedeki takvim; etkinlik eklemek/değiştirmek için normal cümleyle yazın, onayınız olmadan değişiklik yapılmaz");
+        WhatsApp::sendText($m['from'], "✅ Bildirim penceresi açıldı: bugün size gelecek bildirimler 24 saat boyunca ücretsiz.\n\n• \"durum\" yazın → günün özeti ve bekleyen işler\n• \"bitti 4321\" yazın → o numarayla ilgili işi kapatır (son 4 hane yeter)\n• \"etkinlikler\" yazın → sitedeki takvim; etkinlik eklemek/değiştirmek için normal cümleyle yazın, onayınız olmadan değişiklik yapılmaz\n• Sadece pencereyi açmak için \"aç\" yazın → cevap gelmez\n• \"test\" ile başlayan mesaj → asistanı müşteri gibi dener");
       }
     }
     // Yetkili numaradan etkinlik takvimi yönetimi (yalnızca takvimle ilgili mesajlarda devreye girer, onaysız değişiklik yapmaz)
@@ -329,7 +334,14 @@ TXT . "\n" . self::bilgi() . "\n\nBugünün tarihi: " . date('d.m.Y');
         self::save($c); WhatsApp::sendText($m['from'], $eb); return;
       }
     }
-    // sonra normal akış: test için asistan ekip numarasına da müşteri gibi cevap verir
+    // Ekip numarası müşteri asistanını yalnız "test" ile başlayan mesajlarda dener; diğer mesajlara cevap verilmez (boşuna token harcanmaz)
+    if (in_array($m['from'], $team, true)) {
+      if (!preg_match('/^\s*test\b[\s:,-]*/u', $low ?? '', $tm)) { self::save($c); return; }
+      $m['text'] = trim(mb_substr($m['text'], mb_strlen($tm[0])));
+      if ($m['text'] === '') { self::save($c); return; }
+      $c['msgs'][count($c['msgs']) - 1]['t'] = $m['text'];
+    }
+    // sonra normal akış
     if ((int)($c['humanUntil'] ?? 0) > $now) { self::save($c); return; } // ekipten biri şu an yazışıyor, asistan araya girmez
 
     if (in_array($m['type'], ['image', 'document'], true)) {
