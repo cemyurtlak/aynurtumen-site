@@ -41,7 +41,8 @@ function temizle(string $d): void {
 }
 
 // app/data içinde bilgisayardan yönetilen içerik (her güncellemede yazılır)
-const ICERIK = ['app/data/posts.json', 'app/data/books.json', 'app/data/settings.json', 'app/data/youtube-fallback.json', 'app/data/instagram-fallback.json'];
+const ICERIK = ['app/data/posts.json', 'app/data/books.json', 'app/data/settings.json', 'app/data/youtube-fallback.json', 'app/data/instagram-fallback.json',
+  'app/data/yazi-ceviri/en.json', 'app/data/yazi-ceviri/ru.json', 'app/data/yazi-ceviri/de.json'];
 // panelden de değişebilen listeler (yalnız &veri=icerik ile yazılır, eskisi yedeklenir)
 const PANEL = ['app/data/events.json', 'app/data/services.json'];
 // asla yazılmayanlar

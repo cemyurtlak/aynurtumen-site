@@ -27,7 +27,7 @@ Bu klasör **canlı sitenin kaynağıdır** (www.aynurtumen.com.tr, Hostinger). 
 - Açınca test: tek e-posta gönderip Gmail'de başlıklarda `dkim=pass` ve `dmarc=pass` görülmeli.
 
 ## Yazı çevirileri (Gemini)
-- `app/lib/yaziceviri.php`: 75 yazı EN/RU/DE'ye bir kez çevrilir, `app/data/yazi-ceviri/<dil>.json` içinde saklanır (sunucuda, git'e girmez; guncelle.php dokunmaz).
+- `app/lib/yaziceviri.php`: 75 yazı EN/RU/DE'ye bir kez çevrilir, `app/data/yazi-ceviri/<dil>.json` içinde saklanır. Çeviriler ChatGPT Codex ile yapıldı (kaynak: `websitesi/ceviri-codex/<dil>/<slug>.json`), git'te tutulur ve guncelle.php her güncellemede yazar (ICERIK). Türkçe bir yazı değişirse o yazının çevirisi `src` tutmadığı için gizlenir; yeniden çevirip bu dosyaya eklemek gerekir.
 - Anahtarlar yalnız sunucudaki `app/ayarlar.env` → `GEMINI_KEYS=a,b,c` (Cem kendisi yazar, Dağıt'a basar). Asla git'e/sohbete yazılmaz.
 - Çeviri ziyaretçi geldikçe arka planda ilerler (`YaziCeviri::tick`, 2 dk'da bir ~35 sn); elle hızlandırmak için `/api/yazi-cevir?k=<GÜNCELLEME_ANAHTARI>` (veya cron.php). Biten yazı tam çevrilmiş görünür; eksik dilde Türkçe + "Bu yazı Türkçedir" notu ve noindex ile görünür.
 - Türkçe yazı değişirse özeti değişir ve o yazı kendiliğinden yeniden çevrilir. Çeviri bitince sitemap/hreflang o dili ekler.
