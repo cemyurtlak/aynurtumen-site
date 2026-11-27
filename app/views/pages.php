@@ -561,7 +561,10 @@ function page_yazi(array $post, array $posts): string {
   </div></article>
   $rel
 HTML;
-  return layout(['title' => $title, 'path' => '/yazilar/' . $post['slug'], 'body' => $body, 'langs' => YaziCeviri::langsFor($post), 'description' => $t['excerpt'] ?? ($post['excerpt'] ?? null),
+  // Türkçe sayfada isteğe bağlı arama başlığı/açıklaması (seoTitle/seoDesc); çeviri eşleşmesini (src) etkilemez
+  $seoT = !$t && !empty($post['seoTitle']) ? $post['seoTitle'] : $title;
+  $seoD = $t['excerpt'] ?? (!empty($post['seoDesc']) ? $post['seoDesc'] : ($post['excerpt'] ?? null));
+  return layout(['title' => $seoT, 'path' => '/yazilar/' . $post['slug'], 'body' => $body, 'langs' => YaziCeviri::langsFor($post), 'description' => $seoD,
     'head' => '<script type="application/ld+json">' . js_json(['@context' => 'https://schema.org', '@type' => 'Article', 'headline' => $title, 'author' => ['@type' => 'Person', 'name' => 'Aynur Tümen'], 'inLanguage' => $lang]) . '</script>']);
 }
 

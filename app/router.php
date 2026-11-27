@@ -76,7 +76,7 @@ switch (true) {
     }
     $map = ['journal3/blog' => '/yazilar', 'information/contact' => '/iletisim', 'common/home' => '/'];
     if (isset($map[$r])) { redirect($map[$r], 301); break; }
-    if ($r === 'information/information') { redirect(['10' => '/hakkinda', '11' => '/hizmetler'][(string)($_GET['information_id'] ?? '')] ?? '/', 301); break; }
+    if ($r === 'information/information') { redirect(['4' => '/hakkinda', '9' => '/hakkinda', '10' => '/hakkinda', '11' => '/hizmetler'][(string)($_GET['information_id'] ?? '')] ?? '/', 301); break; }
     redirect('/', 301); break;
 
   /* ---------- Sayfalar ---------- */
